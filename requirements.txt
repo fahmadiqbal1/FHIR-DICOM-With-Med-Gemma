@@ -1,0 +1,49 @@
+# Core Dependencies
+flask==2.3.3
+sqlalchemy==2.0.21
+alembic==1.12.0
+psycopg2-binary==2.9.7
+pydantic==2.4.2
+
+# FHIR Dependencies
+fhir.resources==7.0.2
+fhirclient==4.1.0
+requests==2.31.0
+
+# DICOM Dependencies
+pydicom==2.4.3
+pillow==10.0.1
+numpy==1.24.4
+
+# Med-Gemma/ML Dependencies
+transformers==4.34.1
+torch==2.1.0
+huggingface-hub==0.17.3
+tokenizers==0.14.1
+
+# Database
+psycopg2-binary==2.9.7
+redis==5.0.1
+
+# API & Web
+fastapi==0.103.2
+uvicorn==0.23.2
+python-multipart==0.0.6
+
+# Utilities
+python-dotenv==1.0.0
+pyyaml==6.0.1
+python-json-logger==2.0.7
+celery==5.3.2
+
+# Development & Testing
+pytest==7.4.2
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+black==23.9.1
+flake8==6.1.0
+mypy==1.6.1
+
+# Deployment
+gunicorn==21.2.0
+docker==6.1.3

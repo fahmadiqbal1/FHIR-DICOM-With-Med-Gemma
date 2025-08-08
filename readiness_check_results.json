@@ -1,8 +1,8 @@
 {
   "overall_ready": false,
   "readiness_level": "Early Development",
-  "overall_score": 30.2,
-  "total_issues": 41,
+  "overall_score": 31.7,
+  "total_issues": 40,
   "check_results": {
     "Project Structure": {
       "passed": false,
@@ -97,13 +97,12 @@
       "issues": [
         "Missing documentation: docs/installation.md",
         "Missing documentation: docs/api.md",
-        "Missing documentation: docs/deployment.md",
-        "README.md is too brief (less than 500 characters)"
+        "Missing documentation: docs/deployment.md"
       ],
       "docs_found": [
         "README.md"
       ],
-      "score": 40
+      "score": 55
     },
     "Security": {
       "passed": false,

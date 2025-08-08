@@ -1,0 +1,61 @@
+app:
+  name: "FHIR-DICOM-Med-Gemma"
+  version: "1.0.0"
+  debug: false
+  host: "0.0.0.0"
+  port: 8000
+  
+database:
+  url: "${DATABASE_URL:postgresql://user:password@localhost:5432/fhir_dicom_db}"
+  echo: false
+  pool_size: 5
+  max_overflow: 10
+  
+redis:
+  url: "${REDIS_URL:redis://localhost:6379/0}"
+  
+fhir:
+  server_base: "${FHIR_SERVER_BASE:http://localhost:8080/fhir}"
+  validation_enabled: true
+  supported_resources:
+    - "Patient"
+    - "DiagnosticReport"
+    - "ImagingStudy"
+    - "Observation"
+    - "DocumentReference"
+    
+dicom:
+  storage_path: "${DICOM_STORAGE_PATH:./data/dicom}"
+  max_file_size: 104857600  # 100MB
+  supported_modalities:
+    - "CT"
+    - "MR"
+    - "US"
+    - "XR"
+    - "CR"
+    - "DX"
+    
+medgemma:
+  model_name: "${MEDGEMMA_MODEL:google/medgemma-7b}"
+  model_path: "${MEDGEMMA_MODEL_PATH:./models/medgemma}"
+  max_length: 2048
+  temperature: 0.7
+  top_p: 0.9
+  device: "${DEVICE:auto}"
+  
+api:
+  cors_enabled: true
+  cors_origins: 
+    - "http://localhost:3000"
+    - "http://localhost:8080"
+  rate_limit_per_minute: 100
+  
+security:
+  jwt_secret: "${JWT_SECRET}"
+  jwt_expire_hours: 24
+  api_key_required: false
+  
+logging:
+  level: "${LOG_LEVEL:INFO}"
+  format: "json"
+  file: "${LOG_FILE:./logs/app.log}"

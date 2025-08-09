@@ -11,7 +11,7 @@ class Appointment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'patient_id','provider_id','scheduled_at','duration_minutes','status','location','telemedicine_url','notes'
+        'patient_id', 'provider_id', 'scheduled_at', 'duration_minutes', 'status', 'location', 'telemedicine_url', 'notes',
     ];
 
     protected $casts = [

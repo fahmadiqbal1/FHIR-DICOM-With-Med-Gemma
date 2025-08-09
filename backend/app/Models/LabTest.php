@@ -11,7 +11,7 @@ class LabTest extends Model
     use HasFactory;
 
     protected $fillable = [
-        'code','name','normal_range_low','normal_range_high','units','specimen_type'
+        'code', 'name', 'normal_range_low', 'normal_range_high', 'units', 'specimen_type',
     ];
 
     protected $casts = [

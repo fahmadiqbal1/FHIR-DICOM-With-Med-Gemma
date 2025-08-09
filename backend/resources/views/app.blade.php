@@ -56,7 +56,7 @@ function tag(text, cls='') { return `<span class="tag ${cls}">${text}</span>`; }
 async function loadMedGemma() {
     const el = document.getElementById('medgemmaStatus');
     try {
-        const r = await fetch('/integrations/medgemma');
+        const r = await fetch('/api/integrations/medgemma');
         const d = await r.json();
         const parts = [
             `Model: <b>${d.model || 'medgemma'}</b>`,
@@ -94,7 +94,7 @@ function renderPatients(list) {
 async function loadPatients() {
     const q = document.getElementById('search').value.trim().toLowerCase();
     try {
-        const r = await fetch('/reports/patients', {headers: {'Accept':'application/json'}});
+        const r = await fetch('/api/reports/patients', {headers: {'Accept':'application/json'}});
         const d = await r.json();
         patientsCache = d.data || [];
         const filtered = q ? patientsCache.filter(p => (p.name||'').toLowerCase().includes(q) || (p.mrn||'').toLowerCase().includes(q)) : patientsCache;
@@ -117,7 +117,7 @@ async function selectPatient(id) {
     document.getElementById('patientNotes').innerHTML = '';
 
     try {
-        const r = await fetch(`/reports/patients/${id}`, {headers: {'Accept':'application/json'}});
+        const r = await fetch(`/api/reports/patients/${id}`, {headers: {'Accept':'application/json'}});
         const p = await r.json();
         const title = `${p.name || (p.first_name||'')+' '+(p.last_name||'')}`.trim();
         document.getElementById('patientTitle').innerText = title;
@@ -213,21 +213,21 @@ async function selectPatient(id) {
 }
 
 async function postJson(url) {
-    const r = await fetch(url, {method:'POST', headers:{'X-CSRF-TOKEN': csrf, 'Accept':'application/json'}});
+    const r = await fetch(url, {method:'POST', headers:{'Accept':'application/json'}});
     if (!r.ok) throw new Error('Request failed');
     return r.json().catch(()=>({ok:true}))
 }
 
 async function analyzeImaging(studyId){
-    try { await postJson(`/medgemma/analyze/imaging/${studyId}`); if (currentPatientId) await selectPatient(currentPatientId); }
+    try { await postJson(`/api/medgemma/analyze/imaging/${studyId}`); if (currentPatientId) await selectPatient(currentPatientId); }
     catch(e){ alert('Failed to analyze imaging'); }
 }
 async function analyzeLabs(patientId){
-    try { await postJson(`/medgemma/analyze/labs/${patientId}`); if (currentPatientId) await selectPatient(currentPatientId); }
+    try { await postJson(`/api/medgemma/analyze/labs/${patientId}`); if (currentPatientId) await selectPatient(currentPatientId); }
     catch(e){ alert('Failed to analyze labs'); }
 }
 async function secondOpinion(patientId){
-    try { await postJson(`/medgemma/second-opinion/${patientId}`); if (currentPatientId) await selectPatient(currentPatientId); }
+    try { await postJson(`/api/medgemma/second-opinion/${patientId}`); if (currentPatientId) await selectPatient(currentPatientId); }
     catch(e){ alert('Failed to get second opinion'); }
 }
 

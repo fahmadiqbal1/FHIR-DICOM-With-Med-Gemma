@@ -11,7 +11,7 @@ class ClinicalNote extends Model
     use HasFactory;
 
     protected $fillable = [
-        'patient_id','provider_id','soap_subjective','soap_objective','soap_assessment','soap_plan','icd10_code','cpt_code'
+        'patient_id', 'provider_id', 'soap_subjective', 'soap_objective', 'soap_assessment', 'soap_plan', 'icd10_code', 'cpt_code',
     ];
 
     public function patient(): BelongsTo

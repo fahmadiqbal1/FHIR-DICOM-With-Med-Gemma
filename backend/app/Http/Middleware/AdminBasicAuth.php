@@ -15,11 +15,16 @@ class AdminBasicAuth
         $u = $request->getUser();
         $p = $request->getPassword();
 
-        if ($u === null) { $u = ''; }
-        if ($p === null) { $p = ''; }
+        if ($u === null) {
+            $u = '';
+        }
+        if ($p === null) {
+            $p = '';
+        }
 
-        if (!hash_equals((string)$user, (string)$u) || !hash_equals((string)$pass, (string)$p)) {
+        if (! hash_equals((string) $user, (string) $u) || ! hash_equals((string) $pass, (string) $p)) {
             $headers = ['WWW-Authenticate' => 'Basic realm="Admin Panel"'];
+
             return response('Unauthorized.', 401, $headers);
         }
 

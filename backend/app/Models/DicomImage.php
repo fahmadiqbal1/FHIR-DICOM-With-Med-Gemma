@@ -11,7 +11,7 @@ class DicomImage extends Model
     use HasFactory;
 
     protected $fillable = [
-        'imaging_study_id','series_instance_uid','sop_instance_uid','file_path','size_bytes','checksum','metadata','width','height','frames','content_type'
+        'imaging_study_id', 'series_instance_uid', 'sop_instance_uid', 'file_path', 'size_bytes', 'checksum', 'metadata', 'width', 'height', 'frames', 'content_type',
     ];
 
     protected $casts = [

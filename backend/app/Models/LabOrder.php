@@ -11,7 +11,7 @@ class LabOrder extends Model
     use HasFactory;
 
     protected $fillable = [
-        'patient_id','lab_test_id','ordered_by','priority','status','ordered_at','collected_at','resulted_at','result_value','result_flag','result_notes'
+        'patient_id', 'lab_test_id', 'ordered_by', 'priority', 'status', 'ordered_at', 'collected_at', 'resulted_at', 'result_value', 'result_flag', 'result_notes',
     ];
 
     protected $casts = [

@@ -13,7 +13,8 @@ class ImagingStudyFactory extends Factory
 {
     public function definition(): array
     {
-        $modalities = ['CT','MR','US','CR','XA','MG','NM'];
+        $modalities = ['CT', 'MR', 'US', 'CR', 'XA', 'MG', 'NM'];
+
         return [
             'uuid' => (string) Str::uuid(),
             'patient_id' => Patient::factory(),
@@ -22,7 +23,7 @@ class ImagingStudyFactory extends Factory
             'description' => $this->faker->sentence(4),
             'modality' => $this->faker->randomElement($modalities),
             'started_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
-            'status' => $this->faker->randomElement(['registered','available','cancelled','entered-in-error','unknown']),
+            'status' => $this->faker->randomElement(['registered', 'available', 'cancelled', 'entered-in-error', 'unknown']),
         ];
     }
 }

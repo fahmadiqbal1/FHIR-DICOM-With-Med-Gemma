@@ -25,7 +25,9 @@ class DemoDataSeeder extends Seeder
         DB::transaction(function () {
             // Create provider users and assign roles
             $doctors = User::factory()->count(3)->create();
-            foreach ($doctors as $u) { $u->assignRole('Doctor'); }
+            foreach ($doctors as $u) {
+                $u->assignRole('Doctor');
+            }
             $radiologist = User::factory()->create();
             $radiologist->assignRole('Radiologist');
             $pharmacist = User::factory()->create();
@@ -57,7 +59,7 @@ class DemoDataSeeder extends Seeder
 
             // Imaging Studies with images and AI results
             foreach ($patients->random(10) as $patient) {
-                $studies = ImagingStudy::factory()->count(rand(1,2))->for($patient)->create();
+                $studies = ImagingStudy::factory()->count(rand(1, 2))->for($patient)->create();
                 foreach ($studies as $study) {
                     DicomImage::factory()->count(3)->for($study)->create();
                     AiResult::factory()->for($study)->create();
@@ -79,7 +81,7 @@ class DemoDataSeeder extends Seeder
                     'quantity' => rand(10, 60),
                     'refills_allowed' => rand(0, 3),
                     'refills_used' => rand(0, 1),
-                    'status' => collect(['pending','filled','cancelled'])->random(),
+                    'status' => collect(['pending', 'filled', 'cancelled'])->random(),
                     'notes' => 'Take with food',
                 ]);
             }
@@ -89,28 +91,37 @@ class DemoDataSeeder extends Seeder
                 $patient = $patients->random();
                 $test = $labTests->random();
                 $doc = $doctors->random();
-                $orderedAt = Carbon::now()->subDays(rand(0,7))->subHours(rand(0,23));
-                $status = collect(['ordered','collected','processing','resulted'])->random();
-                $collectedAt = in_array($status, ['collected','processing','resulted']) ? (clone $orderedAt)->addHours(rand(1,6)) : null;
-                $resultedAt = $status === 'resulted' ? (clone $collectedAt)->addHours(rand(1,12)) : null;
-                $resultValue = null; $resultFlag = null; $resultNotes = null;
+                $orderedAt = Carbon::now()->subDays(rand(0, 7))->subHours(rand(0, 23));
+                $status = collect(['ordered', 'collected', 'processing', 'resulted'])->random();
+                $collectedAt = in_array($status, ['collected', 'processing', 'resulted']) ? (clone $orderedAt)->addHours(rand(1, 6)) : null;
+                $resultedAt = $status === 'resulted' ? (clone $collectedAt)->addHours(rand(1, 12)) : null;
+                $resultValue = null;
+                $resultFlag = null;
+                $resultNotes = null;
                 if ($status === 'resulted') {
-                    $rangeLow = $test->normal_range_low; $rangeHigh = $test->normal_range_high;
+                    $rangeLow = $test->normal_range_low;
+                    $rangeHigh = $test->normal_range_high;
                     $value = is_null($rangeLow) || is_null($rangeHigh)
-                        ? rand(1,100)
-                        : round($rangeLow + (mt_rand()/mt_getrandmax()) * ($rangeHigh - $rangeLow) * (rand(0,10) > 8 ? 1.5 : 1.0), 2);
-                    $resultValue = (string)$value;
-                    if (!is_null($rangeLow) && $value < $rangeLow) $resultFlag = 'low';
-                    elseif (!is_null($rangeHigh) && $value > $rangeHigh) $resultFlag = 'high';
-                    else $resultFlag = 'normal';
-                    if ($resultFlag !== 'normal' && rand(0,10) > 8) $resultFlag = 'critical';
+                        ? rand(1, 100)
+                        : round($rangeLow + (mt_rand() / mt_getrandmax()) * ($rangeHigh - $rangeLow) * (rand(0, 10) > 8 ? 1.5 : 1.0), 2);
+                    $resultValue = (string) $value;
+                    if (! is_null($rangeLow) && $value < $rangeLow) {
+                        $resultFlag = 'low';
+                    } elseif (! is_null($rangeHigh) && $value > $rangeHigh) {
+                        $resultFlag = 'high';
+                    } else {
+                        $resultFlag = 'normal';
+                    }
+                    if ($resultFlag !== 'normal' && rand(0, 10) > 8) {
+                        $resultFlag = 'critical';
+                    }
                     $resultNotes = 'Auto-generated demo result';
                 }
                 LabOrder::create([
                     'patient_id' => $patient->id,
                     'lab_test_id' => $test->id,
                     'ordered_by' => $doc->id,
-                    'priority' => collect(['routine','urgent','stat'])->random(),
+                    'priority' => collect(['routine', 'urgent', 'stat'])->random(),
                     'status' => $status,
                     'ordered_at' => $orderedAt,
                     'collected_at' => $collectedAt,
@@ -125,15 +136,15 @@ class DemoDataSeeder extends Seeder
             for ($i = 0; $i < 20; $i++) {
                 $patient = $patients->random();
                 $provider = $doctors->random();
-                $when = Carbon::now()->addDays(rand(-7, 14))->setTime(rand(8,16), [0,15,30,45][rand(0,3)]);
+                $when = Carbon::now()->addDays(rand(-7, 14))->setTime(rand(8, 16), [0, 15, 30, 45][rand(0, 3)]);
                 Appointment::create([
                     'patient_id' => $patient->id,
                     'provider_id' => $provider->id,
                     'scheduled_at' => $when,
-                    'duration_minutes' => collect([15,30,45,60])->random(),
-                    'status' => collect(['scheduled','checked-in','completed','cancelled','no-show'])->random(),
+                    'duration_minutes' => collect([15, 30, 45, 60])->random(),
+                    'status' => collect(['scheduled', 'checked-in', 'completed', 'cancelled', 'no-show'])->random(),
                     'location' => 'Room '.rand(100, 120),
-                    'telemedicine_url' => rand(0,1) ? null : 'https://tele.example.com/'.$patient->uuid,
+                    'telemedicine_url' => rand(0, 1) ? null : 'https://tele.example.com/'.$patient->uuid,
                     'notes' => 'Demo appointment',
                 ]);
             }
@@ -149,8 +160,8 @@ class DemoDataSeeder extends Seeder
                     'soap_objective' => 'Vitals stable. No acute distress.',
                     'soap_assessment' => 'Likely viral syndrome. Rule out anemia.',
                     'soap_plan' => 'Hydration, rest, OTC analgesics. Order labs.',
-                    'icd10_code' => collect(['R51','J06.9','Z00.00'])->random(),
-                    'cpt_code' => collect(['99213','99214','99203'])->random(),
+                    'icd10_code' => collect(['R51', 'J06.9', 'Z00.00'])->random(),
+                    'cpt_code' => collect(['99213', '99214', '99203'])->random(),
                 ]);
             }
         });

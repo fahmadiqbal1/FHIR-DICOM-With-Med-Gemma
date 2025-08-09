@@ -12,7 +12,7 @@ class ImagingStudy extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid','patient_id','accession_number','study_instance_uid','description','modality','started_at','status'
+        'uuid', 'patient_id', 'accession_number', 'study_instance_uid', 'description', 'modality', 'started_at', 'status',
     ];
 
     protected $casts = [

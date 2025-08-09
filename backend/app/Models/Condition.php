@@ -11,7 +11,7 @@ class Condition extends Model
     use HasFactory;
 
     protected $fillable = [
-        'patient_id','imaging_study_id','code','display','onset_date','clinical_status','verification_status','notes'
+        'patient_id', 'imaging_study_id', 'code', 'display', 'onset_date', 'clinical_status', 'verification_status', 'notes',
     ];
 
     protected $casts = [

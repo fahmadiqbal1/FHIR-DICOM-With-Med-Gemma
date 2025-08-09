@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\ImagingStudy;
 use App\Models\Patient;
 use App\Services\MedGemmaService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class MedGemmaController extends Controller
@@ -16,6 +15,7 @@ class MedGemmaController extends Controller
         if ($request->expectsJson() || $request->wantsJson()) {
             return response()->json($result);
         }
+
         return redirect()->back()->with('status', 'Imaging analysis completed');
     }
 
@@ -25,6 +25,7 @@ class MedGemmaController extends Controller
         if ($request->expectsJson() || $request->wantsJson()) {
             return response()->json($result);
         }
+
         return redirect()->back()->with('status', 'Lab comments generated');
     }
 
@@ -34,6 +35,7 @@ class MedGemmaController extends Controller
         if ($request->expectsJson() || $request->wantsJson()) {
             return response()->json($result);
         }
+
         return redirect()->back()->with('status', 'Combined second opinion generated');
     }
 }

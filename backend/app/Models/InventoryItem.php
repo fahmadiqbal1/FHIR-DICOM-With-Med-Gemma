@@ -16,7 +16,7 @@ class InventoryItem extends Model
 
     protected $casts = [
         'expiry_date' => 'date',
-        'cost_price' => 'decimal:2',
+        'cost_price' => 'float',
     ];
 
     public function medication(): BelongsTo

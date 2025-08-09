@@ -2,27 +2,36 @@
 
 namespace Database\Factories;
 
+use App\Models\AiResult;
 use App\Models\ImagingStudy;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AiResult>
  */
 class AiResultFactory extends Factory
 {
+    protected $model = AiResult::class;
+
     public function definition(): array
     {
-        $status = $this->faker->randomElement(['queued','processing','completed','failed']);
+        $mod = $this->faker->randomElement(['CR','US','CT','MR']);
+        $payload = [
+            'study_uuid' => (string) Str::uuid(),
+            'modality' => $mod,
+            'findings' => ['No acute abnormality detected'],
+            'impression' => 'Unremarkable study',
+            'recommendations' => ['Clinical correlation recommended'],
+        ];
+
         return [
             'imaging_study_id' => ImagingStudy::factory(),
             'model' => 'medgemma',
-            'request_id' => 'req_'.$this->faker->unique()->bothify('########'),
-            'status' => $status,
-            'confidence_score' => $status === 'completed' ? $this->faker->randomFloat(2, 60, 99) : null,
-            'result' => $status === 'completed' ? [
-                'findings' => $this->faker->sentences(2),
-                'impressions' => $this->faker->sentences(1),
-            ] : null,
+            'request_id' => (string) Str::uuid(),
+            'status' => 'completed',
+            'confidence_score' => $this->faker->randomFloat(2, 0.70, 0.95),
+            'result' => $payload,
         ];
     }
 }

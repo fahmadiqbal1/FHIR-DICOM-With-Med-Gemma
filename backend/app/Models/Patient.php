@@ -14,6 +14,10 @@ class Patient extends Model
         'uuid', 'mrn', 'first_name', 'last_name', 'dob', 'sex', 'phone', 'email', 'address'
     ];
 
+    protected $casts = [
+        'dob' => 'date',
+    ];
+
     public function imagingStudies(): HasMany
     {
         return $this->hasMany(ImagingStudy::class);

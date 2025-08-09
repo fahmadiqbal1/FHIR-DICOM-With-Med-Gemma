@@ -5,42 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>FHIR • DICOM • MedGemma • Dashboard</title>
-    <style>
-        :root{--bg:#f7f7f7;--card:#fff;--border:#e5e5e5;--muted:#666;--primary:#1f2937;--accent:#2563eb;--ok:#0a7f3f;--warn:#a16207;--error:#b91c1c}
-        *{box-sizing:border-box}
-        body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial,sans-serif;background:var(--bg);color:#111}
-        header{background:var(--card);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
-        header h1{font-size:18px;margin:0}
-        .container{max-width:1200px;margin:20px auto;padding:0 16px}
-        .grid{display:grid;grid-template-columns:1fr 2fr;gap:16px}
-        .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
-        .card h2{margin:0 0 10px 0;font-size:16px}
-        .muted{color:var(--muted)}
-        .tag{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px;margin-right:6px}
-        .tag.ok{color:var(--ok);border-color:#b7eb8f;background:#e6ffed}
-        .tag.warn{color:var(--warn);border-color:#fde68a;background:#fffbeb}
-        .tag.err{color:var(--error);border-color:#fecaca;background:#fef2f2}
-        .list{max-height:520px;overflow:auto;border-top:1px solid var(--border)}
-        .item{padding:10px 8px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:8px;cursor:pointer}
-        .item:hover{background:#fafafa}
-        .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid var(--primary);color:#fff;background:var(--primary);border-radius:8px;cursor:pointer;font-size:14px}
-        .btn.secondary{background:#fff;color:var(--primary)}
-        .btn.small{padding:6px 8px;font-size:12px}
-        .row{display:flex;gap:8px;flex-wrap:wrap}
-        table{width:100%;border-collapse:collapse}
-        th,td{padding:8px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
-        pre{white-space:pre-wrap;word-wrap:break-word;background:#0b1020;color:#d2e1ff;padding:10px;border-radius:6px}
-        a.link{color:var(--accent);text-decoration:none}
-    </style>
+    <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body>
-<header>
-    <h1>FHIR • DICOM • MedGemma • Dashboard</h1>
-    <nav class="row">
-        <a class="btn secondary" href="/" title="Laravel Welcome">Welcome</a>
-        <a class="btn secondary" href="/admin/users" title="Admin Users (Basic Auth)">Admin Users</a>
-    </nav>
-</header>
+<header class="app-header"><div class="inner"><div class="logo"><div class="mark"></div><span>FHIR • DICOM • MedGemma</span></div><nav class="nav"><a class="btn ghost" href="/" title="Laravel Welcome">Welcome</a><a class="btn ghost" href="/admin/users" title="Admin Users (Basic Auth)">Admin Users</a></nav></div></header>
 <div class="container">
     <div class="grid">
         <div class="card">
@@ -61,8 +29,8 @@
         <div class="card">
             <h2>Patients</h2>
             <div class="row" style="margin-bottom:8px">
-                <input id="search" type="search" placeholder="Search by name or MRN" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px">
-                <button class="btn" onclick="loadPatients()">Reload</button>
+                <input id="search" type="search" placeholder="Search by name or MRN" class="input" style="flex:1">
+                <button class="btn primary" onclick="loadPatients()">Reload</button>
             </div>
             <div id="patients" class="list" role="listbox" aria-label="Patients list"></div>
         </div>
@@ -159,8 +127,8 @@ async function selectPatient(id) {
         const actions = document.getElementById('patientActions');
         actions.style.display = 'flex';
         actions.innerHTML = `
-            <button class="btn" onclick="analyzeLabs(${p.id})">Analyze Labs</button>
-            <button class="btn" onclick="secondOpinion(${p.id})">Combined Second Opinion</button>
+            <button class="btn primary" onclick="analyzeLabs(${p.id})">Analyze Labs</button>
+            <button class="btn ghost" onclick="secondOpinion(${p.id})">Combined Second Opinion</button>
         `;
 
         // Imaging
@@ -168,7 +136,7 @@ async function selectPatient(id) {
         let imHtml = `<h3>Imaging Studies</h3>`;
         if (im.length === 0) imHtml += '<div class="muted">No imaging studies.</div>';
         else {
-            imHtml += '<table><thead><tr><th>Modality</th><th>Description</th><th>Date</th><th>AI</th><th></th></tr></thead><tbody>';
+            imHtml += '<table class="table"><thead><tr><th>Modality</th><th>Description</th><th>Date</th><th>AI</th><th></th></tr></thead><tbody>';
             im.forEach(s => {
                 const lastAI = (s.ai_results||[])[0];
                 const aiCell = lastAI ? `${htmlesc(lastAI.model)} ${tag((lastAI.confidence_score||'').toString(),'ok')}` : '<span class="muted">None</span>';
@@ -177,7 +145,7 @@ async function selectPatient(id) {
                     <td>${htmlesc(s.description||'-')}</td>
                     <td>${htmlesc(s.started_at||'-')}</td>
                     <td>${aiCell}</td>
-                    <td><button class="btn small" onclick="analyzeImaging(${s.id})">Analyze</button></td>
+                    <td><button class="btn small primary" onclick="analyzeImaging(${s.id})">Analyze</button></td>
                 </tr>`;
                 if (lastAI && lastAI.result) {
                     imHtml += `<tr><td colspan="5"><pre>${htmlesc(JSON.stringify(lastAI.result,null,2))}</pre></td></tr>`;
@@ -192,7 +160,7 @@ async function selectPatient(id) {
         let labsHtml = `<h3>Lab Orders</h3>`;
         if (labs.length === 0) labsHtml += '<div class="muted">No labs.</div>';
         else {
-            labsHtml += '<table><thead><tr><th>Test</th><th>Status</th><th>Priority</th><th>Result</th><th>Notes</th></tr></thead><tbody>';
+            labsHtml += '<table class="table"><thead><tr><th>Test</th><th>Status</th><th>Priority</th><th>Result</th><th>Notes</th></tr></thead><tbody>';
             labs.forEach(o => {
                 labsHtml += `<tr>
                     <td>${htmlesc(o.code || '')} ${htmlesc(o.name||'')}</td>
@@ -211,7 +179,7 @@ async function selectPatient(id) {
         let rxHtml = `<h3>Prescriptions</h3>`;
         if (rx.length === 0) rxHtml += '<div class="muted">No prescriptions.</div>';
         else {
-            rxHtml += '<table><thead><tr><th>Medication</th><th>Strength</th><th>Dosage</th><th>Frequency</th><th>Status</th></tr></thead><tbody>';
+            rxHtml += '<table class="table"><thead><tr><th>Medication</th><th>Strength</th><th>Dosage</th><th>Frequency</th><th>Status</th></tr></thead><tbody>';
             rx.forEach(r => {
                 rxHtml += `<tr>
                     <td>${htmlesc(r.medication||'')}</td>

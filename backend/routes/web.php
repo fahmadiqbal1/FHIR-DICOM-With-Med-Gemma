@@ -9,6 +9,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Simple front-end dashboard
+Route::get('/app', function () {
+    return view('app');
+})->name('app');
+
 // MedGemma integration status
 Route::get('/integrations/medgemma', function () {
     $cfg = config('services.medgemma');

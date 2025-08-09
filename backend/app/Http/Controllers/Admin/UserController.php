@@ -30,12 +30,12 @@ class UserController extends Controller
         $rolesAvailable = Schema::hasTable('roles') && Schema::hasTable('model_has_roles');
 
         $rules = [
-            'name' => ['required','string','max:255'],
-            'email' => ['required','email','max:255','unique:users,email'],
-            'password' => ['required','string','min:6'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:6'],
         ];
         if ($rolesAvailable) {
-            $rules['role'] = ['required','string'];
+            $rules['role'] = ['required', 'string'];
         }
 
         $data = $request->validate($rules);

@@ -11,7 +11,7 @@ class Medication extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ndc_code','name','form','strength','manufacturer','controlled_substance_schedule','is_active'
+        'ndc_code', 'name', 'form', 'strength', 'manufacturer', 'controlled_substance_schedule', 'is_active',
     ];
 
     public function inventoryItems(): HasMany

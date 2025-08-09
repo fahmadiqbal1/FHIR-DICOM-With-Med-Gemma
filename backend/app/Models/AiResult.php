@@ -11,7 +11,7 @@ class AiResult extends Model
     use HasFactory;
 
     protected $fillable = [
-        'imaging_study_id','model','request_id','status','confidence_score','result'
+        'imaging_study_id', 'model', 'request_id', 'status', 'confidence_score', 'result',
     ];
 
     protected $casts = [

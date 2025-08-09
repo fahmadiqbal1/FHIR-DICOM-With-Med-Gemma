@@ -11,7 +11,7 @@ class Prescription extends Model
     use HasFactory;
 
     protected $fillable = [
-        'patient_id','medication_id','prescribed_by','dosage','frequency','route','quantity','refills_allowed','refills_used','status','notes'
+        'patient_id', 'medication_id', 'prescribed_by', 'dosage', 'frequency', 'route', 'quantity', 'refills_allowed', 'refills_used', 'status', 'notes',
     ];
 
     public function patient(): BelongsTo

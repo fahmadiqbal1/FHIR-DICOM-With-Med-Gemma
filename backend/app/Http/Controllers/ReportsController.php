@@ -10,7 +10,7 @@ class ReportsController extends Controller
     public function patients(Request $request)
     {
         $patients = Patient::query()
-            ->withCount(['imagingStudies','labOrders','prescriptions','clinicalNotes'])
+            ->withCount(['imagingStudies', 'labOrders', 'prescriptions', 'clinicalNotes'])
             ->orderBy('id')
             ->limit(250)
             ->get();
@@ -18,6 +18,7 @@ class ReportsController extends Controller
         $data = $patients->map(function ($p) {
             $first = $p->first_name ? $p->first_name : '';
             $last = $p->last_name ? $p->last_name : '';
+
             return [
                 'id' => $p->id,
                 'uuid' => $p->uuid,
@@ -46,14 +47,20 @@ class ReportsController extends Controller
     public function patientShow(Request $request, Patient $patient)
     {
         $patient->load([
-            'imagingStudies' => function ($q) { $q->orderByDesc('started_at'); },
+            'imagingStudies' => function ($q) {
+                $q->orderByDesc('started_at');
+            },
             'imagingStudies.images',
-            'imagingStudies.aiResults' => function ($q) { $q->orderByDesc('created_at'); },
+            'imagingStudies.aiResults' => function ($q) {
+                $q->orderByDesc('created_at');
+            },
             'labOrders.test',
             'labOrders.orderingProvider',
             'prescriptions.medication',
             'prescriptions.prescriber',
-            'clinicalNotes' => function ($q) { $q->orderByDesc('created_at'); },
+            'clinicalNotes' => function ($q) {
+                $q->orderByDesc('created_at');
+            },
         ]);
 
         $first = $patient->first_name ? $patient->first_name : '';
@@ -92,6 +99,7 @@ class ReportsController extends Controller
             'lab_orders' => $patient->labOrders->map(function ($o) {
                 $code = $o->test ? $o->test->code : null;
                 $name = $o->test ? $o->test->name : null;
+
                 return [
                     'id' => $o->id,
                     'code' => $code,
@@ -107,6 +115,7 @@ class ReportsController extends Controller
             'prescriptions' => $patient->prescriptions->map(function ($p) {
                 $medName = $p->medication ? $p->medication->name : null;
                 $medStrength = $p->medication ? $p->medication->strength : null;
+
                 return [
                     'id' => $p->id,
                     'medication' => $medName,

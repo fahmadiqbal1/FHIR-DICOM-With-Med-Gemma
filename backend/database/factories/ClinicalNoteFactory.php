@@ -20,8 +20,8 @@ class ClinicalNoteFactory extends Factory
             'soap_objective' => 'Objective: '.$this->faker->sentence(),
             'soap_assessment' => 'Assessment: '.$this->faker->sentence(),
             'soap_plan' => 'Plan: '.$this->faker->sentence(),
-            'icd10_code' => $this->faker->randomElement(['R51','J06.9','Z00.00']),
-            'cpt_code' => $this->faker->randomElement(['99213','99214','99203']),
+            'icd10_code' => $this->faker->randomElement(['R51', 'J06.9', 'Z00.00']),
+            'cpt_code' => $this->faker->randomElement(['99213', '99214', '99203']),
         ];
     }
 }

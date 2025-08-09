@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 class SecureStorageService
 {
     private string $disk;
+
     private string $key;
 
     public function __construct(string $disk = 'local')
@@ -32,6 +33,7 @@ class SecureStorageService
         ]);
         $path = 'secure/'.Str::uuid().($extension ? ".{$extension}" : '');
         Storage::disk($this->disk)->put($path, $payload);
+
         return $path;
     }
 
@@ -40,7 +42,7 @@ class SecureStorageService
         $this->assertKey();
         $payload = Storage::disk($this->disk)->get($path);
         $data = json_decode($payload, true);
-        if (!is_array($data) || empty($data['ct']) || empty($data['iv']) || empty($data['tag'])) {
+        if (! is_array($data) || empty($data['ct']) || empty($data['iv']) || empty($data['tag'])) {
             throw new \RuntimeException('Invalid encrypted payload');
         }
         $ciphertext = base64_decode($data['ct']);
@@ -50,12 +52,13 @@ class SecureStorageService
         if ($plain === false) {
             throw new \RuntimeException('Decryption failed');
         }
+
         return $plain;
     }
 
     private function assertKey(): void
     {
-        if (!$this->key || strlen($this->key) !== 32) {
+        if (! $this->key || strlen($this->key) !== 32) {
             throw new \RuntimeException('Invalid STORAGE_ENCRYPTION_KEY (base64-encoded 32 bytes)');
         }
     }

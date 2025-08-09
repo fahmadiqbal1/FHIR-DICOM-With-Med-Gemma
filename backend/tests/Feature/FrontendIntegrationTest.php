@@ -19,9 +19,9 @@ class FrontendIntegrationTest extends TestCase
 
     public function test_medgemma_status_endpoint_returns_json(): void
     {
-        $resp = $this->get('/integrations/medgemma');
+        $resp = $this->get('/api/integrations/medgemma');
         $resp->assertStatus(200);
-        $resp->assertJsonStructure(['name','integrated','enabled','configured','model']);
+        $resp->assertJsonStructure(['name', 'integrated', 'enabled', 'configured', 'model']);
     }
 
     public function test_reports_patients_endpoint_works(): void
@@ -29,7 +29,7 @@ class FrontendIntegrationTest extends TestCase
         // Create a sample patient
         Patient::factory()->create();
 
-        $resp = $this->get('/reports/patients', ['Accept' => 'application/json']);
+        $resp = $this->get('/api/reports/patients', ['Accept' => 'application/json']);
         $resp->assertStatus(200);
         $resp->assertJsonStructure(['data']);
     }
@@ -38,8 +38,8 @@ class FrontendIntegrationTest extends TestCase
     {
         $patient = Patient::factory()->create();
 
-        $resp = $this->get('/reports/patients/'.$patient->id, ['Accept' => 'application/json']);
+        $resp = $this->get('/api/reports/patients/'.$patient->id, ['Accept' => 'application/json']);
         $resp->assertStatus(200);
-        $resp->assertJsonStructure(['id','uuid','mrn','first_name','last_name','sex','imaging_studies','lab_orders','prescriptions','clinical_notes']);
+        $resp->assertJsonStructure(['id', 'uuid', 'mrn', 'first_name', 'last_name', 'sex', 'imaging_studies', 'lab_orders', 'prescriptions', 'clinical_notes']);
     }
 }

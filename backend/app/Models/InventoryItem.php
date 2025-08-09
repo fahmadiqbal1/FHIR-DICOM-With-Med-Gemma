@@ -11,7 +11,7 @@ class InventoryItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'medication_id','lot_number','expiry_date','quantity','location','cost_price','status'
+        'medication_id', 'lot_number', 'expiry_date', 'quantity', 'location', 'cost_price', 'status',
     ];
 
     protected $casts = [

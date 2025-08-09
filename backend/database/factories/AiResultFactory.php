@@ -16,7 +16,7 @@ class AiResultFactory extends Factory
 
     public function definition(): array
     {
-        $mod = $this->faker->randomElement(['CR','US','CT','MR']);
+        $mod = $this->faker->randomElement(['CR', 'US', 'CT', 'MR']);
         $payload = [
             'study_uuid' => (string) Str::uuid(),
             'modality' => $mod,

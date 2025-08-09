@@ -23,10 +23,10 @@ class MedGemmaService
 
         if ($mod === 'XR' || $mod === 'CR') {
             $findings[] = str_contains($desc, 'chest') ? 'No acute cardiopulmonary findings' : 'No displaced fracture identified';
-            $impression = 'Normal chest radiograph' . (str_contains($desc, 'hand') ? '; consider sprain if symptomatic' : '');
+            $impression = 'Normal chest radiograph'.(str_contains($desc, 'hand') ? '; consider sprain if symptomatic' : '');
             $recommendations[] = 'Symptomatic management and follow-up if symptoms persist';
         } elseif ($mod === 'US') {
-            $findings[] = 'Viable intrauterine pregnancy' . (str_contains($desc, 'ob') ? ' with appropriate growth parameters' : '');
+            $findings[] = 'Viable intrauterine pregnancy'.(str_contains($desc, 'ob') ? ' with appropriate growth parameters' : '');
             $impression = 'Unremarkable obstetric ultrasound';
             $recommendations[] = 'Routine prenatal follow-up';
             $confidence = 0.88;
@@ -104,7 +104,7 @@ class MedGemmaService
         $pregnant = $patient->sex === 'female' && $patient->clinicalNotes()->where('soap_assessment', 'like', '%pregnan%')->exists();
         // If we have medications present, suggest Prenatal Vitamins for pregnancy, else first available
         $med = Medication::where('name', 'like', '%Prenatal%')->first();
-        if (!$med) {
+        if (! $med) {
             $med = Medication::first();
         }
         if ($med) {
@@ -119,7 +119,7 @@ class MedGemmaService
         foreach ($labSummary['lab_comments'] as $c) {
             $summaryText .= '- Lab: '.$c."\n";
         }
-        if (!empty($recMeds)) {
+        if (! empty($recMeds)) {
             $summaryText .= 'Suggested meds: '.implode(', ', Arr::pluck($recMeds, 'medication'))."\n";
         }
 

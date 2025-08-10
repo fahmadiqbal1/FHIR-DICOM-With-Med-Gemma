@@ -33,20 +33,20 @@ Route::get('/integrations/medgemma', function () {
     ]);
 })->name('integrations.medgemma');
 
-// Admin: minimal user management
-Route::middleware('admin.basic')->prefix('admin')->name('admin.')->group(function () {
+// Admin: user management (secured)
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
 });
 
-// Reports
-Route::prefix('reports')->name('reports.')->group(function () {
+// Reports (secured for clinicians and admins)
+Route::middleware(['auth:sanctum', 'role:clinician|admin'])->prefix('reports')->name('reports.')->group(function () {
     Route::get('/patients', [ReportsController::class, 'patients'])->name('patients');
     Route::get('/patients/{patient}', [ReportsController::class, 'patientShow'])->name('patients.show');
 });
 
-// MedGemma analysis endpoints
-Route::prefix('medgemma')->name('medgemma.')->group(function () {
+// MedGemma analysis endpoints (secured for clinicians and admins)
+Route::middleware(['auth:sanctum', 'role:clinician|admin'])->prefix('medgemma')->name('medgemma.')->group(function () {
     Route::post('/analyze/imaging/{study}', [MedGemmaController::class, 'analyzeImagingStudy'])->name('analyze.imaging');
     Route::post('/analyze/labs/{patient}', [MedGemmaController::class, 'analyzeLabs'])->name('analyze.labs');
     Route::post('/second-opinion/{patient}', [MedGemmaController::class, 'combinedSecondOpinion'])->name('second.opinion');

@@ -8,53 +8,53 @@ use App\Models\LabOrder;
 use App\Models\Medication;
 use App\Models\Patient;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class MedGemmaService
 {
     public function analyzeImagingStudy(ImagingStudy $study)
     {
-        // Fake analysis based on modality and description
-        $mod = strtoupper((string) $study->modality);
-        $desc = strtolower((string) $study->description);
-        $findings = [];
-        $impression = '';
-        $recommendations = [];
-        $confidence = 0.82;
-
-        if ($mod === 'XR' || $mod === 'CR') {
-            $findings[] = str_contains($desc, 'chest') ? 'No acute cardiopulmonary findings' : 'No displaced fracture identified';
-            $impression = 'Normal chest radiograph' . (str_contains($desc, 'hand') ? '; consider sprain if symptomatic' : '');
-            $recommendations[] = 'Symptomatic management and follow-up if symptoms persist';
-        } elseif ($mod === 'US') {
-            $findings[] = 'Viable intrauterine pregnancy' . (str_contains($desc, 'ob') ? ' with appropriate growth parameters' : '');
-            $impression = 'Unremarkable obstetric ultrasound';
-            $recommendations[] = 'Routine prenatal follow-up';
-            $confidence = 0.88;
-        } else {
-            $findings[] = 'No critical abnormality detected';
-            $impression = 'Unremarkable study';
-            $recommendations[] = 'Clinical correlation recommended';
-            $confidence = 0.75;
-        }
-
+        $endpoint = config('services.medgemma.endpoint');
+        $apiKey = config('services.medgemma.api_key');
+        $model = config('services.medgemma.model', 'medgemma');
         $payload = [
             'study_uuid' => $study->uuid,
-            'modality' => $mod,
-            'findings' => $findings,
-            'impression' => $impression,
-            'recommendations' => $recommendations,
+            'modality' => $study->modality,
+            'description' => $study->description,
         ];
-
+        $result = null;
+        $maxRetries = 3;
+        $attempt = 0;
+        do {
+            try {
+                $response = Http::withToken($apiKey)
+                    ->timeout(30)
+                    ->post($endpoint . '/analyze/imaging', $payload);
+                if ($response->successful()) {
+                    $data = $response->json();
+                    $result = $data;
+                    break;
+                } else {
+                    Log::warning('MedGemma API error', ['status' => $response->status(), 'body' => $response->body()]);
+                }
+            } catch (\Exception $e) {
+                Log::error('MedGemma API exception', ['error' => $e->getMessage()]);
+            }
+            $attempt++;
+            usleep(500000); // 0.5s backoff
+        } while ($attempt < $maxRetries);
+        if (!$result) {
+            $result = [
+                'error' => 'MedGemma API unavailable or failed after retries.'
+            ];
+        }
         $ai = AiResult::create([
             'imaging_study_id' => $study->id,
-            'model' => config('services.medgemma.model', 'medgemma'),
-            'request_id' => (string) \Illuminate\Support\Str::uuid(),
-            'status' => 'completed',
-            'confidence_score' => $confidence,
-            'result' => $payload,
+            'model' => $model,
+            'result' => $result,
         ]);
-
-        return ['ai_result_id' => $ai->id, 'result' => $payload];
+        return $result;
     }
 
     public function analyzeLabs(Patient $patient): array

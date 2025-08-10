@@ -1,98 +1,58 @@
-# FHIR-DICOM-With-Med-Gemma
+# MedGemma Healthcare Platform
 
-A Laravel-based FHIR-ish demo backend with DICOM imaging models and a lightweight MedGemma AI integration. This repo now includes a simple front-end dashboard you can deploy immediately.
+## Overview
+A secure, production-ready healthcare management platform with MedGemma AI integration, built with Laravel and Bootstrap.
 
-Front end URL (after starting the app):
-- http://localhost:8000/app
+## Features
+- Secure authentication (Sanctum, RBAC)
+- Patient management (add, edit, view)
+- MedGemma AI analysis (imaging, labs, second opinion)
+- Reports dashboard
+- User notifications (success, error, info)
+- Audit logging for compliance
+- Responsive, accessible UI (Bootstrap)
+- Onboarding & help page
 
-## What’s included
-- MedGemma integration endpoints (stubbed analysis service for demo):
-  - GET /integrations/medgemma – check integration status
-  - POST /medgemma/analyze/imaging/{study}
-  - POST /medgemma/analyze/labs/{patient}
-  - POST /medgemma/second-opinion/{patient}
-- Admin panel (Basic Auth) to create users: GET/POST /admin/users
-- Demo data seeders (patients, imaging studies, labs, meds, notes)
-- Simple dashboard (Blade + vanilla JS) at /app to:
-  - View MedGemma integration status
-  - List patients and inspect details
-  - Trigger MedGemma analysis actions
+## Deployment Checklist
+1. **Clone the repository** to your VPS.
+2. **Install dependencies:**
+   - `composer install --optimize-autoloader --no-dev`
+   - `npm install && npm run build` (if using JS assets)
+3. **Configure environment:**
+   - Copy `.env.example` to `.env`
+   - Set `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, database, Redis, and MedGemma API credentials
+   - Run `php artisan key:generate`
+4. **Database:**
+   - `php artisan migrate --force`
+   - `php artisan db:seed --force`
+5. **Storage & Permissions:**
+   - `php artisan storage:link`
+   - Ensure `storage` and `bootstrap/cache` are writable
+6. **Queue & Scheduler:**
+   - Set up Supervisor for `php artisan queue:work`
+   - Add cron for `php artisan schedule:run`
+7. **SSL & Security:**
+   - Enable HTTPS
+   - Use strong passwords and keep system updated
+8. **Backups & Monitoring:**
+   - Configure spatie/laravel-backup
+   - Integrate Sentry/New Relic if desired
 
-## Quick start (local)
-Requirements: PHP 8.2+, Composer, SQLite extension enabled.
-
-1. Clone and install dependencies
-   ```bash
-   cd backend
-   composer install
-   ```
-2. Configure environment
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
-3. Create SQLite database file
-   ```bash
-   mkdir -p database
-   touch database/database.sqlite
-   ```
-4. Migrate and seed demo data
-   ```bash
-   php artisan migrate --seed
-   ```
-5. Run the app
-   ```bash
-   php artisan serve
-   ```
-6. Open the dashboard
-   - http://127.0.0.1:8000/app
-   - Admin users panel: http://127.0.0.1:8000/admin/users (Basic Auth)
-
-## Admin Basic Auth
-Defaults are included in backend/.env.example:
-```
-ADMIN_BASIC_USER=admin
-ADMIN_BASIC_PASSWORD=password
-```
-Set your own in .env for production.
-
-## MedGemma configuration
-Environment variables (backend/.env):
-```
-MEDGEMMA_ENABLED=false
-MEDGEMMA_ENDPOINT=
-MEDGEMMA_API_KEY=
-MEDGEMMA_MODEL=medgemma
-```
-The included MedGemmaService is a safe, offline demo (no external calls). The status endpoint (/integrations/medgemma) reflects your env config.
-
-## Deployment
-- Point your web server document root to backend/public.
-- Copy backend/.env.example to backend/.env and set:
-  - APP_ENV=production
-  - APP_DEBUG=false
-  - Database settings (e.g., MySQL or SQLite) as needed
-  - ADMIN_BASIC_USER / ADMIN_BASIC_PASSWORD
-  - MedGemma envs if desired
-- Run from backend directory:
-  ```bash
-  php artisan key:generate
-  php artisan migrate --seed
+## User Notifications
+- Success, error, and info messages appear at the top of each page after actions.
+- Example controller usage:
+  ```php
+  return redirect()->back()->with('success', 'Action completed!');
+  return redirect()->back()->with('error', 'Something went wrong.');
+  return redirect()->back()->with('info', 'This is an informational message.');
   ```
-- Ensure storage and bootstrap cache directories are writable by the web server user.
 
-## API overview
-- Dashboard (UI): GET /app
-- Patients (JSON):
-  - GET /reports/patients
-  - GET /reports/patients/{patient}
-- MedGemma:
-  - GET /integrations/medgemma
-  - POST /medgemma/analyze/imaging/{study}
-  - POST /medgemma/analyze/labs/{patient}
-  - POST /medgemma/second-opinion/{patient}
-- Admin users (Basic Auth): GET/POST /admin/users
+## Accessibility & Best Practices
+- All forms and modals are keyboard accessible
+- ARIA labels and roles are used where appropriate
+- Responsive design for all devices
 
-## Notes
-- SecureStorageService is provided for encrypted file storage; if you wire it up, configure a 32-byte base64 key as documented in code comments.
-- This is a demo-oriented setup; adjust roles, permissions, and data model per your production needs.
+## Support
+- See the Help page in the app
+- Email: support@medgemma.com
+

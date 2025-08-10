@@ -18,6 +18,14 @@ class ReportsController extends Controller
         $data = $patients->map(function ($p) {
             $first = $p->first_name ? $p->first_name : '';
             $last = $p->last_name ? $p->last_name : '';
+            // Safely format DOB regardless of encryption/casting behavior
+            $dobVal = $p->dob;
+            $dob = null;
+            if ($dobVal instanceof \DateTimeInterface) {
+                $dob = $dobVal->format('Y-m-d');
+            } elseif (is_string($dobVal) && $dobVal !== '') {
+                try { $dob = \Illuminate\Support\Carbon::parse($dobVal)->toDateString(); } catch (\Throwable $e) { $dob = $dobVal; }
+            }
             return [
                 'id' => $p->id,
                 'uuid' => $p->uuid,
@@ -25,7 +33,7 @@ class ReportsController extends Controller
                 'first_name' => $p->first_name,
                 'last_name' => $p->last_name,
                 'name' => trim($first.' '.$last),
-                'dob' => $p->dob ? $p->dob->toDateString() : null,
+                'dob' => $dob,
                 'sex' => $p->sex,
                 'counts' => [
                     'imaging_studies' => $p->imaging_studies_count,
@@ -58,6 +66,14 @@ class ReportsController extends Controller
 
         $first = $patient->first_name ? $patient->first_name : '';
         $last = $patient->last_name ? $patient->last_name : '';
+        // Safe DOB formatting
+        $dobVal = $patient->dob;
+        $dob = null;
+        if ($dobVal instanceof \DateTimeInterface) {
+            $dob = $dobVal->format('Y-m-d');
+        } elseif (is_string($dobVal) && $dobVal !== '') {
+            try { $dob = \Illuminate\Support\Carbon::parse($dobVal)->toDateString(); } catch (\Throwable $e) { $dob = $dobVal; }
+        }
 
         $payload = [
             'id' => $patient->id,
@@ -66,7 +82,7 @@ class ReportsController extends Controller
             'first_name' => $patient->first_name,
             'last_name' => $patient->last_name,
             'name' => trim($first.' '.$last),
-            'dob' => $patient->dob ? $patient->dob->toDateString() : null,
+            'dob' => $dob,
             'sex' => $patient->sex,
             'imaging_studies' => $patient->imagingStudies->map(function ($s) {
                 return [

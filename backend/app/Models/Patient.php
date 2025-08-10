@@ -16,12 +16,8 @@ class Patient extends Model
         'uuid', 'mrn', 'first_name', 'last_name', 'dob', 'sex', 'phone', 'email', 'address'
     ];
 
-    protected $casts = [
-        'dob' => 'date',
-    ];
-
     protected $encryptable = [
-        'mrn', 'first_name', 'last_name', 'dob', 'sex', 'phone', 'email', 'address'
+        'mrn', 'first_name', 'last_name', 'dob', 'phone', 'email', 'address'
     ];
 
     public function setAttribute($key, $value)
@@ -68,6 +64,19 @@ class Patient extends Model
     public function clinicalNotes(): HasMany
     {
         return $this->hasMany(ClinicalNote::class);
+    }
+
+    public function getDobAsDate()
+    {
+        $dob = $this->getAttribute('dob');
+        if ($dob) {
+            try {
+                return \Carbon\Carbon::parse($dob);
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+        return null;
     }
 
     protected static function booted()

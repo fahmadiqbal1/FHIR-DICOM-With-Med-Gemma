@@ -1,28 +1,6 @@
 <?php
 
-// This file is part of the OpenEMR project.
-//
-// OpenEMR is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// OpenEMR is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with OpenEMR.  If not, see <https://www.gnu.org/licenses/>.
-
-// SPDX-License-Identifier: GPL-3.0-only
-
 declare(strict_types=1);
-
-/*
- * OpenEMR is a comprehensive healthcare information management solution.
- * For more information, visit https://www.open-emr.org.
- */
 
 namespace App\Http\Controllers\Admin;
 
@@ -33,6 +11,19 @@ use Illuminate\Support\Facades\Response;
 
 class AuditLogController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     */
+    public function __construct()
+    {
+        $this->middleware(['auth:sanctum', 'role:admin']);
+    }
+
+    /**
+     * Display a listing of the audit logs.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index(Request $request)
     {
         if ($request->wantsJson() || $request->is('api/*')) {

@@ -23,15 +23,25 @@ class DemoDataSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
-            // Create provider users and assign roles
+            // Create provider users and assign roles if Spatie package is available
             $doctors = User::factory()->count(3)->create();
-            foreach ($doctors as $u) { $u->assignRole('Doctor'); }
+            foreach ($doctors as $u) { 
+                if (method_exists($u, 'assignRole')) {
+                    $u->assignRole('Doctor'); 
+                }
+            }
             $radiologist = User::factory()->create();
-            $radiologist->assignRole('Radiologist');
+            if (method_exists($radiologist, 'assignRole')) {
+                $radiologist->assignRole('Radiologist');
+            }
             $pharmacist = User::factory()->create();
-            $pharmacist->assignRole('Pharmacist');
+            if (method_exists($pharmacist, 'assignRole')) {
+                $pharmacist->assignRole('Pharmacist');
+            }
             $labTech = User::factory()->create();
-            $labTech->assignRole('Lab Technician');
+            if (method_exists($labTech, 'assignRole')) {
+                $labTech->assignRole('Lab Technician');
+            }
 
             // Patients
             $patients = Patient::factory()->count(15)->create();

@@ -8,15 +8,15 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
-use Spatie\Permission\Models\Role;
+// use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
     public function index()
     {
-        $rolesAvailable = Schema::hasTable('roles') && Schema::hasTable('model_has_roles');
+        $rolesAvailable = Schema::hasTable('roles') && Schema::hasTable('model_has_roles') && class_exists('Spatie\Permission\Models\Role');
         $users = $rolesAvailable ? User::with('roles')->orderBy('id')->get() : User::orderBy('id')->get();
-        $roles = $rolesAvailable ? Role::orderBy('name')->get() : collect();
+        $roles = $rolesAvailable ? app('Spatie\Permission\Models\Role')->orderBy('name')->get() : collect();
 
         return view('admin.users', [
             'users' => $users,
@@ -27,7 +27,7 @@ class UserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $rolesAvailable = Schema::hasTable('roles') && Schema::hasTable('model_has_roles');
+        $rolesAvailable = Schema::hasTable('roles') && Schema::hasTable('model_has_roles') && class_exists('Spatie\Permission\Models\Role');
 
         $rules = [
             'name' => ['required','string','max:255'],
@@ -47,7 +47,7 @@ class UserController extends Controller
         ]);
 
         if ($rolesAvailable && $request->filled('role')) {
-            $role = Role::where('name', $request->input('role'))->first();
+            $role = app('Spatie\Permission\Models\Role')->where('name', $request->input('role'))->first();
             if ($role) {
                 $user->assignRole($role);
             }

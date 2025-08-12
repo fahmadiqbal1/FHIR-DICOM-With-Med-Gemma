@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body>
-<header class="app-header"><div class="inner"><div class="logo"><div class="mark"></div><span>FHIR • DICOM • MedGemma</span></div><nav class="nav"><a class="btn ghost" href="/" title="Laravel Welcome">Welcome</a><a class="btn ghost" href="/admin/users" title="Admin Users (Basic Auth)">Admin Users</a></nav></div></header>
+<header class="app-header"><div class="inner"><div class="logo"><div class="mark"></div><span>FHIR • DICOM • MedGemma</span></div><nav class="nav"><a class="btn ghost" href="/" title="Laravel Welcome">Welcome</a><a class="btn ghost" href="/dicom-upload" title="DICOM Upload & FHIR">DICOM Upload</a><a class="btn ghost" href="/admin/users" title="Admin Users (Basic Auth)">Admin Users</a></nav></div></header>
 <div class="container">
     <div class="grid">
         <div class="card">

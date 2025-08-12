@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\DicomController;
+use App\Http\Controllers\FhirController;
 use App\Http\Controllers\MedGemmaController;
 use App\Http\Controllers\ReportsController;
 
@@ -13,6 +15,11 @@ Route::get('/', function () {
 Route::get('/app', function () {
     return view('app');
 })->name('app');
+
+// DICOM upload page
+Route::get('/dicom-upload', function () {
+    return view('dicom-upload');
+})->name('dicom.upload.page');
 
 // MedGemma integration status
 Route::get('/integrations/medgemma', function () {
@@ -52,4 +59,19 @@ Route::middleware($securedMiddleware)->prefix('medgemma')->name('medgemma.')->gr
     Route::post('/analyze/imaging/{study}', [MedGemmaController::class, 'analyzeImagingStudy'])->name('analyze.imaging');
     Route::post('/analyze/labs/{patient}', [MedGemmaController::class, 'analyzeLabs'])->name('analyze.labs');
     Route::post('/second-opinion/{patient}', [MedGemmaController::class, 'combinedSecondOpinion'])->name('second.opinion');
+});
+
+// DICOM endpoints (secured; open in testing)
+Route::middleware($securedMiddleware)->prefix('dicom')->name('dicom.')->group(function () {
+    Route::post('/upload', [DicomController::class, 'upload'])->name('upload');
+    Route::get('/download/{image}', [DicomController::class, 'download'])->name('download');
+    Route::get('/export-fhir/{study}', [DicomController::class, 'exportToFhir'])->name('export.fhir');
+});
+
+// FHIR endpoints (secured; open in testing)
+Route::middleware($securedMiddleware)->prefix('fhir')->name('fhir.')->group(function () {
+    Route::get('/Patient/{patient}', [FhirController::class, 'getPatient'])->name('patient.get');
+    Route::post('/Patient', [FhirController::class, 'importPatient'])->name('patient.import');
+    Route::get('/ImagingStudy/{study}', [FhirController::class, 'getImagingStudy'])->name('imagingstudy.get');
+    Route::post('/ImagingStudy', [FhirController::class, 'importImagingStudy'])->name('imagingstudy.import');
 });

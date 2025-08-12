@@ -33,6 +33,7 @@
                 <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
                 <li class="nav-item"><a class="nav-link" href="/patients">Patients</a></li>
                 <li class="nav-item"><a class="nav-link" href="/medgemma">MedGemma AI</a></li>
+                <li class="nav-item"><a class="nav-link" href="/dicom-upload">DICOM Upload</a></li>
                 <li class="nav-item"><a class="nav-link" href="/reports">Reports</a></li>
                 <li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
             </ul>

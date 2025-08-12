@@ -74,44 +74,139 @@
 
 @push('scripts')
 <script>
-// Use hardcoded patients for demo
-const demoPatients = [
-    { id: 1, first_name: 'John', last_name: 'Doe', mrn: 'MRN12345' },
-    { id: 2, first_name: 'Jane', last_name: 'Smith', mrn: 'MRN67890' },
-    { id: 3, first_name: 'Robert', last_name: 'Johnson', mrn: 'MRN54321' }
-];
-
-const sel = document.getElementById('patient_id');
-demoPatients.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.id;
-    opt.textContent = p.first_name + ' ' + p.last_name + ' (MRN: ' + p.mrn + ')';
-    sel.appendChild(opt);
-});
-
-// Use hardcoded studies for demo
-function loadStudies() {
-    const demoStudies = [
-        { id: 1, modality: 'CT', description: 'Chest CT', patient: 'John Doe' },
-        { id: 2, modality: 'MR', description: 'Brain MRI', patient: 'Jane Smith' },
-        { id: 3, modality: 'XR', description: 'Chest X-Ray', patient: 'Robert Johnson' }
-    ];
+// Load patients from API
+function loadPatients() {
+    const sel = document.getElementById('patient_id');
+    sel.innerHTML = '<option value="">Select patient...</option>';
     
+    // Fetch patients from API
+    fetch('/api/patients', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to load patients');
+        }
+        return response.json();
+    })
+    .then(patients => {
+        if (patients.length === 0) {
+            // If no patients found, use demo data as fallback
+            const demoPatients = [
+                { id: 1, first_name: 'John', last_name: 'Doe', mrn: 'MRN12345' },
+                { id: 2, first_name: 'Jane', last_name: 'Smith', mrn: 'MRN67890' },
+                { id: 3, first_name: 'Robert', last_name: 'Johnson', mrn: 'MRN54321' }
+            ];
+            
+            demoPatients.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.first_name + ' ' + p.last_name + ' (MRN: ' + p.mrn + ')';
+                sel.appendChild(opt);
+            });
+        } else {
+            // Add patients from API
+            patients.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.first_name + ' ' + p.last_name + ' (MRN: ' + p.mrn + ')';
+                sel.appendChild(opt);
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error loading patients:', error);
+        // Use demo data as fallback
+        const demoPatients = [
+            { id: 1, first_name: 'John', last_name: 'Doe', mrn: 'MRN12345' },
+            { id: 2, first_name: 'Jane', last_name: 'Smith', mrn: 'MRN67890' },
+            { id: 3, first_name: 'Robert', last_name: 'Johnson', mrn: 'MRN54321' }
+        ];
+        
+        demoPatients.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.first_name + ' ' + p.last_name + ' (MRN: ' + p.mrn + ')';
+            sel.appendChild(opt);
+        });
+    });
+}
+
+// Load patients on page load
+loadPatients();
+
+// Load studies from API
+function loadStudies() {
     const sel = document.getElementById('study_id');
     sel.innerHTML = '<option value="">Select study...</option>';
-    demoStudies.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s.id;
-        opt.textContent = s.modality + ' - ' + s.description + ' (' + s.patient + ')';
-        sel.appendChild(opt);
+    
+    // Fetch studies from API
+    fetch('/api/imaging-studies', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to load studies');
+        }
+        return response.json();
+    })
+    .then(studies => {
+        if (studies.length === 0) {
+            // If no studies found, use demo data as fallback
+            const demoStudies = [
+                { id: 1, modality: 'CT', description: 'Chest CT', patient: 'John Doe' },
+                { id: 2, modality: 'MR', description: 'Brain MRI', patient: 'Jane Smith' },
+                { id: 3, modality: 'XR', description: 'Chest X-Ray', patient: 'Robert Johnson' }
+            ];
+            
+            demoStudies.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.modality + ' - ' + s.description + ' (' + s.patient + ')';
+                sel.appendChild(opt);
+            });
+        } else {
+            // Add studies from API
+            studies.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.modality + ' - ' + s.description + ' (' + s.patient + ')';
+                sel.appendChild(opt);
+            });
+        }
+        
+        document.getElementById('export-fhir-btn').disabled = sel.options.length <= 1;
+    })
+    .catch(error => {
+        console.error('Error loading studies:', error);
+        // Use demo data as fallback
+        const demoStudies = [
+            { id: 1, modality: 'CT', description: 'Chest CT', patient: 'John Doe' },
+            { id: 2, modality: 'MR', description: 'Brain MRI', patient: 'Jane Smith' },
+            { id: 3, modality: 'XR', description: 'Chest X-Ray', patient: 'Robert Johnson' }
+        ];
+        
+        demoStudies.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.modality + ' - ' + s.description + ' (' + s.patient + ')';
+            sel.appendChild(opt);
+        });
+        
+        document.getElementById('export-fhir-btn').disabled = false;
     });
-    document.getElementById('export-fhir-btn').disabled = demoStudies.length === 0;
 }
 
 // Initial load
 loadStudies();
 
-// Handle DICOM upload form submission (mock for demo)
+// Handle DICOM upload form submission (real API integration)
 const uploadForm = document.getElementById('dicom-upload-form');
 uploadForm.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -121,21 +216,36 @@ uploadForm.addEventListener('submit', function(e) {
     const resultDiv = document.getElementById('upload-result');
     const errorDiv = document.getElementById('upload-error');
     
+    // Check if file is selected
+    if (!formData.get('file') || formData.get('file').size === 0) {
+        errorDiv.textContent = 'Please select a file.';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
     resultDiv.style.display = 'none';
     errorDiv.style.display = 'none';
     uploadBtn.disabled = true;
     uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...';
     
-    // Simulate network delay
-    setTimeout(() => {
-        // Mock successful response
-        const mockResponse = {
-            message: 'DICOM file uploaded successfully',
-            study_id: Math.floor(Math.random() * 1000) + 1,
-            image_id: Math.floor(Math.random() * 1000) + 1
-        };
-        
-        resultDiv.textContent = mockResponse.message;
+    // Send to backend API
+    fetch('/dicom/upload', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || data.errors ? JSON.stringify(data.errors) : 'Upload failed');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        resultDiv.textContent = data.message;
         resultDiv.style.display = 'block';
         uploadForm.reset();
         
@@ -147,75 +257,66 @@ uploadForm.addEventListener('submit', function(e) {
         
         const sel = document.getElementById('study_id');
         const opt = document.createElement('option');
-        opt.value = mockResponse.study_id;
+        opt.value = data.study_id;
         opt.textContent = modality + ' - ' + description + ' (' + patientName + ')';
         sel.appendChild(opt);
         
         // Enable export button
         document.getElementById('export-fhir-btn').disabled = false;
         
+        // Refresh studies list
+        loadStudies();
+    })
+    .catch(error => {
+        errorDiv.textContent = 'Error: ' + error.message;
+        errorDiv.style.display = 'block';
+    })
+    .finally(() => {
         uploadBtn.disabled = false;
         uploadBtn.innerHTML = 'Upload DICOM';
-    }, 1500);
+    });
 });
 
-// Handle FHIR export (mock for demo)
+// Handle FHIR export (real API integration)
 const exportBtn = document.getElementById('export-fhir-btn');
 exportBtn.addEventListener('click', function() {
     const studyId = document.getElementById('study_id').value;
     if (!studyId) return;
-    
-    const studyText = document.querySelector(`#study_id option[value="${studyId}"]`).textContent;
-    const studyParts = studyText.match(/^(\w+) - (.+) \((.+)\)$/);
-    const modality = studyParts ? studyParts[1] : 'CT';
-    const description = studyParts ? studyParts[2] : 'Study Description';
-    const patientName = studyParts ? studyParts[3] : 'John Doe';
-    const patientParts = patientName.split(' ');
     
     const fhirOutput = document.getElementById('fhir-output');
     fhirOutput.style.display = 'none';
     exportBtn.disabled = true;
     exportBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Exporting...';
     
-    // Simulate network delay
-    setTimeout(() => {
-        // Create mock FHIR resource
-        const mockFhirResource = {
-            "resourceType": "ImagingStudy",
-            "id": "study-" + studyId,
-            "status": "available",
-            "subject": {
-                "reference": "Patient/patient-" + Math.floor(Math.random() * 1000),
-                "display": patientName
-            },
-            "started": new Date().toISOString(),
-            "description": description,
-            "series": [
-                {
-                    "uid": "1.2.3." + Math.random().toString(36).substring(2, 15),
-                    "modality": {
-                        "system": "http://dicom.nema.org/resources/ontology/DCM",
-                        "code": modality
-                    },
-                    "numberOfInstances": Math.floor(Math.random() * 50) + 1,
-                    "instance": [
-                        {
-                            "uid": "1.2.3." + Math.random().toString(36).substring(2, 15),
-                            "sopClass": {
-                                "system": "urn:ietf:rfc:3986",
-                                "code": "1.2.840.10008.5.1.4.1.1.1"
-                            }
-                        }
-                    ]
-                }
-            ]
-        };
-        
-        fhirOutput.textContent = JSON.stringify(mockFhirResource, null, 2);
+    // Send to backend API
+    fetch(`/dicom/export-fhir/${studyId}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || 'Export failed');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        fhirOutput.textContent = JSON.stringify(data, null, 2);
         fhirOutput.style.display = 'block';
+    })
+    .catch(error => {
+        const errorDiv = document.getElementById('upload-error');
+        errorDiv.textContent = 'Error: ' + error.message;
+        errorDiv.style.display = 'block';
+    })
+    .finally(() => {
         exportBtn.disabled = false;
         exportBtn.innerHTML = 'Export to FHIR';
-    }, 1000);
+    });
 });
 
 // Enable/disable export button based on study selection

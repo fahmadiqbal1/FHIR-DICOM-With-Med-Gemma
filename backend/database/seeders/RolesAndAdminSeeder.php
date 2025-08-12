@@ -67,7 +67,15 @@ class RolesAndAdminSeeder extends Seeder
         $adminRole->givePermissionTo($permissionClass::all());
 
         // Ensure the admin has Admin role
-        $admin->assignRole('Admin');
+        if (method_exists($admin, 'assignRole')) {
+            $admin->assignRole('Admin');
+        } else {
+            // Fallback method if assignRole is not available
+            $adminRole = $roleClass::findByName('Admin');
+            if ($adminRole) {
+                $admin->roles()->attach($adminRole);
+            }
+        }
 
         // Basic mappings for other roles
         $roleClass::findByName('Doctor')->givePermissionTo([

@@ -16,16 +16,26 @@ export default defineConfig({
         strictPort: true,
         cors: {
             origin: '*',
-            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-TOKEN', 'Accept'],
+            exposedHeaders: ['Content-Disposition'],
+            credentials: true,
+            preflightContinue: false,
+            optionsSuccessStatus: 204
         },
         hmr: {
             host: 'work-1-nftqwglffzohutke.prod-runtime.all-hands.dev',
+            protocol: 'https'
         },
         headers: {
             'X-Frame-Options': 'ALLOWALL',
             'Access-Control-Allow-Origin': '*',
-            'Content-Security-Policy': "frame-ancestors 'self' *",
+            'Content-Security-Policy': "frame-ancestors 'self' *; default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss:;",
+            'X-Content-Type-Options': 'nosniff',
+            'Referrer-Policy': 'strict-origin-when-cross-origin'
         },
+        watch: {
+            usePolling: true
+        }
     },
 });

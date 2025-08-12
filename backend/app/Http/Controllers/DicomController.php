@@ -18,6 +18,9 @@ class DicomController extends Controller
      */
     public function upload(Request $request, SecureStorageService $storageService)
     {
+        // Log the request for debugging
+        Log::info('DICOM upload request', ['has_file' => $request->hasFile('file')]);
+        
         $validator = Validator::make($request->all(), [
             'file' => 'required|file|max:50000', // 50MB max
             'patient_id' => 'required|exists:patients,id',
@@ -29,11 +32,20 @@ class DicomController extends Controller
         ]);
 
         if ($validator->fails()) {
+            Log::warning('DICOM upload validation failed', ['errors' => $validator->errors()->toArray()]);
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
         try {
+            if (!$request->hasFile('file')) {
+                return response()->json(['error' => 'No file uploaded'], 422);
+            }
+            
             $file = $request->file('file');
+            if (!$file->isValid()) {
+                return response()->json(['error' => 'Invalid file upload'], 422);
+            }
+            
             $fileContents = file_get_contents($file->getRealPath());
             $fileSize = $file->getSize();
             $fileChecksum = md5($fileContents);

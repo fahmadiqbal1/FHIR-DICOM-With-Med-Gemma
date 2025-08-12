@@ -233,14 +233,19 @@ uploadForm.addEventListener('submit', function(e) {
         method: 'POST',
         body: formData,
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
         }
     })
     .then(response => {
         if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.error || data.errors ? JSON.stringify(data.errors) : 'Upload failed');
-            });
+            if (response.headers.get('content-type')?.includes('application/json')) {
+                return response.json().then(data => {
+                    throw new Error(data.error || data.errors ? JSON.stringify(data.errors) : 'Upload failed');
+                });
+            } else {
+                throw new Error('Server error: ' + response.status);
+            }
         }
         return response.json();
     })
@@ -298,9 +303,13 @@ exportBtn.addEventListener('click', function() {
     })
     .then(response => {
         if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.error || 'Export failed');
-            });
+            if (response.headers.get('content-type')?.includes('application/json')) {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Export failed');
+                });
+            } else {
+                throw new Error('Server error: ' + response.status);
+            }
         }
         return response.json();
     })

@@ -46,7 +46,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->name('admin.
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
 });
 
-$securedMiddleware = app()->environment('testing') ? [] : ['auth:sanctum', 'role:clinician|admin'];
+$securedMiddleware = app()->environment('production') ? ['auth:sanctum', 'role:clinician|admin'] : [];
 
 // Reports (secured for clinicians and admins; open in testing)
 Route::middleware($securedMiddleware)->prefix('reports')->name('reports.')->group(function () {

@@ -98,6 +98,16 @@ return [
     'cipher' => 'AES-256-CBC',
 
     'key' => env('APP_KEY'),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Storage Encryption Key
+    |--------------------------------------------------------------------------
+    |
+    | This key is used by the SecureStorageService to encrypt sensitive data
+    | before storing it on disk. It should be a base64-encoded 32-byte key.
+    |
+    */
 
     'storage_encryption_key_base64' => env('STORAGE_ENCRYPTION_KEY_BASE64', 'VGhpcyBpcyBhIDMyIGJ5dGUga2V5IGZvciBBRVMtMjU2IQ=='),
 

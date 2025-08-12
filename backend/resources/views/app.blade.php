@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>FHIR • DICOM • MedGemma • Dashboard</title>
+    <title>{{ config('app.name', 'MedGemma Healthcare Platform') }} • Dashboard</title>
     <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body>

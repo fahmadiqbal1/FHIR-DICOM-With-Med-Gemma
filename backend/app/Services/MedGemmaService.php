@@ -46,7 +46,9 @@ class MedGemmaService
         } while ($attempt < $maxRetries);
         if (!$result) {
             $result = [
-                'error' => 'MedGemma API unavailable or failed after retries.'
+                'error' => 'MedGemma API unavailable or failed after retries.',
+                'modality' => $study->modality,
+                'impression' => 'Unable to analyze due to API error.'
             ];
         }
         $ai = AiResult::create([
@@ -54,7 +56,7 @@ class MedGemmaService
             'model' => $model,
             'result' => $result,
         ]);
-        return $result;
+        return ['result' => $result];
     }
 
     public function analyzeLabs(Patient $patient): array

@@ -99,7 +99,7 @@ return [
 
     'key' => env('APP_KEY'),
 
-    'storage_encryption_key_base64' => env('STORAGE_ENCRYPTION_KEY', ''),
+    'storage_encryption_key_base64' => env('STORAGE_ENCRYPTION_KEY_BASE64', 'VGhpcyBpcyBhIDMyIGJ5dGUga2V5IGZvciBBRVMtMjU2IQ=='),
 
     'previous_keys' => [
         ...array_filter(

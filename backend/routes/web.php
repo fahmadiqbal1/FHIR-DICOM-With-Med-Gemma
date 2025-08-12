@@ -40,8 +40,8 @@ Route::get('/integrations/medgemma', function () {
     ]);
 })->name('integrations.medgemma');
 
-// Admin: user management (secured)
-Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+// Admin: user management (secured with basic auth)
+Route::middleware('admin.basic')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
 });

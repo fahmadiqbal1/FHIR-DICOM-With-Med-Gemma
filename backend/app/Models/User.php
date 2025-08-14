@@ -23,6 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'revenue_share',
     ];
 
     /**
@@ -49,7 +50,7 @@ class User extends Authenticatable
     }
 
     protected $encryptable = [
-        'name', 'email', 'password'
+        'name'
     ];
 
     public function setAttribute($key, $value)

@@ -12,6 +12,9 @@ class FrontendIntegrationTest extends TestCase
 
     public function test_dashboard_route_renders(): void
     {
+        $user = \App\Models\User::factory()->create();
+        $this->actingAs($user);
+
         $resp = $this->get('/app');
         $resp->assertStatus(200);
         $resp->assertSee('FHIR');

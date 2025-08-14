@@ -84,6 +84,9 @@ class ReportsController extends Controller
             'name' => trim($first.' '.$last),
             'dob' => $dob,
             'sex' => $patient->sex,
+            'phone' => $patient->phone,
+            'email' => $patient->email,
+            'address' => $patient->address,
             'imaging_studies' => $patient->imagingStudies->map(function ($s) {
                 return [
                     'id' => $s->id,

@@ -1,0 +1,23 @@
+# MedGemma Server Requirements
+fastapi==0.104.1
+uvicorn==0.24.0
+python-multipart==0.0.6
+python-json-logger==2.0.7
+pydantic==2.4.2
+
+# AI/ML Dependencies
+torch>=2.0.0
+transformers>=4.35.0
+accelerate>=0.24.0
+bitsandbytes>=0.41.0
+
+# Image Processing
+Pillow>=10.0.0
+
+# Optional: For better performance
+# nvidia-ml-py3>=12.0.0  # For GPU monitoring
+# flash-attn>=2.3.0      # For faster attention (if supported)
+
+# Development
+pytest>=7.4.0
+httpx>=0.25.0  # For testing FastAPI

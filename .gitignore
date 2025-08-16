@@ -5,3 +5,18 @@
 /external
 .DS_Store
 Thumbs.db
+
+# Python cache and test artifacts
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+
+# PyTorch model files
+*.pt
+*.pth
+
+# Transformers cache
+.transformers_cache/

@@ -28,6 +28,26 @@ class QuickLoginController extends Controller
         return redirect('/login')->with('error', 'Doctor user not found');
     }
     
+    public function loginAsRadiologist()
+    {
+        $radiologist = User::where('email', 'radiologist@medgemma.com')->first();
+        if ($radiologist) {
+            Auth::login($radiologist);
+            return redirect()->route('radiologist.dashboard');
+        }
+        return redirect('/login')->with('error', 'Radiologist user not found');
+    }
+    
+    public function loginAsLabTech()
+    {
+        $labTech = User::where('email', 'labtech@medgemma.com')->first();
+        if ($labTech) {
+            Auth::login($labTech);
+            return redirect()->route('lab-tech.dashboard');
+        }
+        return redirect('/login')->with('error', 'Lab Technician user not found');
+    }
+    
     public function showQuickLogin()
     {
         return view('quick-login');

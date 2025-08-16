@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completed Studies Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .test-btn {
+            background: #4ade80;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .test-btn:hover {
+            background: #059669;
+        }
+        #completedStudies {
+            margin-top: 20px;
+            min-height: 200px;
+        }
+        .btn {
+            background: #4ade80;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 0.85rem;
+        }
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Completed Studies Display Test</h1>
+    
+    <p>This page tests the completed studies display functionality.</p>
+    
+    <button class="test-btn" onclick="testCompletedStudies()">Test Completed Studies Display</button>
+    
+    <div id="completedStudies"></div>
+
+    <script>
+        // Mock completed studies data
+        const mockStudies = [
+            {
+                "id": 17,
+                "patient_id": 1,
+                "patient_name": "Meta Lynch",
+                "patient_mrn": null,
+                "description": "MRI Brain",
+                "modality": "X-RAY",
+                "status": "completed",
+                "completed_date": "2025-08-16 03:57",
+                "images_count": 1,
+                "images": [
+                    {
+                        "id": 47,
+                        "url": "http://localhost:8000/storage/radiology-images/1755316638_Pleural Effusion, AP Chest Xray. JETem 2016.jpg",
+                        "filename": "1755316638_Pleural Effusion, AP Chest Xray. JETem 2016.jpg",
+                        "content_type": "image/jpeg"
+                    }
+                ],
+                "has_report": true,
+                "findings": "lkasejrbvlsbjrvwsrtsrtgb",
+                "impression": "srtbgdertbhetyhety"
+            },
+            {
+                "id": 19,
+                "patient_id": 3,
+                "patient_name": "Kaylin Pollich",
+                "patient_mrn": null,
+                "description": "MRI Brain",
+                "modality": "MRI",
+                "status": "completed",
+                "completed_date": "2025-08-15 13:52",
+                "images_count": 1,
+                "images": [
+                    {
+                        "id": 46,
+                        "url": "http://localhost:8000/storage/radiology-images/1755265957_PHOTO-2025-07-06-12-21-30.jpg",
+                        "filename": "1755265957_PHOTO-2025-07-06-12-21-30.jpg",
+                        "content_type": "image/jpeg"
+                    }
+                ],
+                "has_report": true,
+                "findings": "dghndghndghbn dghndfghdfsgh",
+                "impression": "dfghdfhdsrfhsfgh"
+            }
+        ];
+
+        function testCompletedStudies() {
+            displayCompletedStudies(mockStudies);
+        }
+
+        function displayCompletedStudies(studies) {
+            const container = document.getElementById('completedStudies');
+            
+            if (!studies || studies.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; opacity: 0.7;">
+                        <p>No completed studies found.</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Studies you've completed will appear here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = studies.map(study => `
+                <div class="study-card" style="background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; border-left: 4px solid #4ade80;">
+                    <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 1rem;">
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0 0 0.5rem 0; color: #4ade80;">${study.description || 'Imaging Study'}</h4>
+                            <p style="margin: 0; opacity: 0.8;"><strong>Patient:</strong> ${study.patient_name}</p>
+                            ${study.patient_mrn ? `<p style="margin: 0; opacity: 0.8; font-size: 0.9rem;"><strong>MRN:</strong> ${study.patient_mrn}</p>` : ''}
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="status-badge status-completed" style="background: #059669; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">
+                                ✅ ${study.status.charAt(0).toUpperCase() + study.status.slice(1)}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0;">
+                        <div>
+                            <p style="margin: 0; font-size: 0.9rem; opacity: 0.7;">Modality</p>
+                            <p style="margin: 0; font-weight: 500;">${study.modality || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 0; font-size: 0.9rem; opacity: 0.7;">Completed Date</p>
+                            <p style="margin: 0; font-weight: 500;">${study.completed_date || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 0; font-size: 0.9rem; opacity: 0.7;">Images</p>
+                            <p style="margin: 0; font-weight: 500;">${study.images_count || 0} files</p>
+                        </div>
+                    </div>
+
+                    ${study.has_report ? `
+                        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                            <h5 style="margin: 0 0 0.5rem 0; color: #4ade80;">📋 Radiology Report</h5>
+                            ${study.findings ? `<p style="margin: 0.5rem 0; font-size: 0.9rem;"><strong>Findings:</strong> ${study.findings}</p>` : ''}
+                            ${study.impression ? `<p style="margin: 0.5rem 0; font-size: 0.9rem;"><strong>Impression:</strong> ${study.impression}</p>` : ''}
+                        </div>
+                    ` : ''}
+
+                    ${study.images && study.images.length > 0 ? `
+                        <div style="margin-top: 1rem;">
+                            <h5 style="margin: 0 0 0.5rem 0; color: #4ade80;">📷 Attached Images</h5>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                ${study.images.map(image => `
+                                    <a href="${image.url}" target="_blank" style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-size: 0.85rem; transition: all 0.2s;">
+                                        🖼️ ${image.filename}
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <button class="btn secondary" onclick="alert('View Patient History for Patient ID: ${study.patient_id}')" style="font-size: 0.85rem;">
+                            📋 View Patient History
+                        </button>
+                        ${study.images && study.images.length > 0 ? `
+                            <button class="btn secondary" onclick="window.open('${study.images[0].url}', '_blank')" style="font-size: 0.85rem;">
+                                🔍 View Images
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

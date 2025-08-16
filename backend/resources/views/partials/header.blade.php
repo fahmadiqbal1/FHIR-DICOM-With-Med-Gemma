@@ -18,10 +18,6 @@
                 <span class="nav-icon">🤖</span>
                 <span class="nav-text">AI Analysis</span>
             </a>
-            <a href="/reports" class="nav-link {{ request()->is('reports*') ? 'active' : '' }}">
-                <span class="nav-icon">📈</span>
-                <span class="nav-text">Reports</span>
-            </a>
             <a href="/dicom-upload" class="nav-link {{ request()->is('dicom-upload*') ? 'active' : '' }}">
                 <span class="nav-icon">📁</span>
                 <span class="nav-text">DICOM Upload</span>

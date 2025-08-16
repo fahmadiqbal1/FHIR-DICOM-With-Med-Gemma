@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin.basic' => \App\Http\Middleware\AdminBasicAuth::class,
             'role' => \App\Http\Middleware\Role::class,
+            'radiologist' => \App\Http\Middleware\RadiologistMiddleware::class,
             'session.timeout' => \App\Http\Middleware\CheckSessionTimeout::class,
         ]);
         $middleware->append(AuditLogMiddleware::class);

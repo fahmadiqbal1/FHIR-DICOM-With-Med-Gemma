@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient History Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .test-btn:hover {
+            background: #0056b3;
+        }
+        .result {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Patient History Functionality Test</h1>
+    
+    <p>This page demonstrates that the patient history functionality has been implemented and is working.</p>
+    
+    <button class="test-btn" onclick="testPatientHistory()">Test Patient History API</button>
+    <button class="test-btn" onclick="testPatientBasicInfo()">Test Patient Basic Info</button>
+    
+    <div id="results"></div>
+
+    <script>
+        async function testPatientHistory() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="result">Loading patient history...</div>';
+            
+            try {
+                const response = await fetch('/test-patient-history/1');
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="result">
+                        <h3>✅ Patient History API Working</h3>
+                        <p><strong>Patient:</strong> ${data.patient.first_name} ${data.patient.last_name}</p>
+                        <p><strong>Clinical Notes:</strong> ${data.notes.length} found</p>
+                        <p><strong>Lab Orders:</strong> ${data.orders.length} found</p>
+                        <p><strong>Imaging Studies:</strong> ${data.imaging.length} found</p>
+                        <p><em>Note: Data appears encrypted in API but will be properly displayed in frontend.</em></p>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="result">
+                        <h3>❌ Error</h3>
+                        <p>Error testing patient history: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testPatientBasicInfo() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="result">Loading patient info...</div>';
+            
+            try {
+                const response = await fetch('/api/patients/1');
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="result">
+                        <h3>✅ Patient Basic Info API Working</h3>
+                        <p><strong>Patient ID:</strong> ${data.id}</p>
+                        <p><strong>MRN:</strong> ${data.mrn || 'N/A'}</p>
+                        <p><strong>Name:</strong> ${data.first_name} ${data.last_name}</p>
+                        <p><strong>DOB:</strong> ${data.dob || 'N/A'}</p>
+                        <p><strong>Sex:</strong> ${data.sex || 'N/A'}</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="result">
+                        <h3>❌ Error</h3>
+                        <p>Error testing patient info: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

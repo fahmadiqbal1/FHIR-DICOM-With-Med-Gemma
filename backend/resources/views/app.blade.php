@@ -642,7 +642,7 @@
     </style>
 </head>
 <body>
-<header class="app-header"><div class="inner"><div class="logo"><div class="mark"></div><span>FHIR • DICOM • MedGemma</span></div><nav class="nav"><a class="btn ghost active" href="/app" title="Dashboard">Dashboard</a><a class="btn ghost" href="/patients" title="Patients">Patients</a><a class="btn ghost" href="/medgemma" title="MedGemma AI">MedGemma AI</a><a class="btn ghost" href="/reports" title="Reports">Reports</a><a class="btn ghost" href="/dicom-upload" title="DICOM Upload">DICOM Upload</a>@auth @if(Auth::user()->hasRole('Admin') || Auth::user()->email === 'admin@medgemma.com')<a class="btn ghost" href="/user-management" title="User Management">User Management</a>@endif @endauth<a class="btn ghost" href="/help" title="Help">Help</a></nav></div></header>
+<header class="app-header"><div class="inner"><div class="logo"><div class="mark"></div><span>FHIR • DICOM • MedGemma</span></div><nav class="nav"><a class="btn ghost active" href="/app" title="Dashboard">Dashboard</a><a class="btn ghost" href="/patients" title="Patients">Patients</a><a class="btn ghost" href="/medgemma" title="MedGemma AI">MedGemma AI</a><a class="btn ghost" href="/dicom-upload" title="DICOM Upload">DICOM Upload</a>@auth @if(Auth::user()->hasRole('Admin') || Auth::user()->email === 'admin@medgemma.com')<a class="btn ghost" href="/user-management" title="User Management">User Management</a>@endif @endauth<a class="btn ghost" href="/help" title="Help">Help</a></nav></div></header>
 <div class="container">
     <div class="grid">
         <div class="card">
@@ -652,31 +652,10 @@
         <div class="card">
             <h2>Quick Tips</h2>
             <ul>
-                <li>Use the left list to select a patient. Demo data is seeded.</li>
-                <li>Trigger AI analyses from the patient details panel.</li>
+                <li>Navigate to <a href="/patients" style="color: #4ecdc4;">Patient Management</a> to view all patient records with medical data indicators.</li>
+                <li>Use <a href="/medgemma" style="color: #4ecdc4;">MedGemma AI</a> to trigger AI analyses from the analysis panel.</li>
                 <li>Admin panel: <span class="tag">/admin/users</span> (Basic Auth via .env)</li>
             </ul>
-        </div>
-    </div>
-
-    <div class="grid" style="margin-top:16px">
-        <div class="card">
-            <h2>Patients</h2>
-            <div class="row" style="margin-bottom:8px">
-                <input id="search" type="search" placeholder="Search by name or MRN" class="input" style="flex:1">
-                <button class="btn primary" onclick="loadPatients()">Reload</button>
-            </div>
-            <div id="patients" class="list" role="listbox" aria-label="Patients list"></div>
-        </div>
-        <div class="card">
-            <h2 id="patientTitle">Patient Details</h2>
-            <div id="patientMeta" class="muted">Select a patient to view details.</div>
-            <div id="patientActions" class="row" style="margin:10px 0; display:none"></div>
-
-            <div id="patientImaging"></div>
-            <div id="patientLabs" style="margin-top:16px"></div>
-            <div id="patientRx" style="margin-top:16px"></div>
-            <div id="patientNotes" style="margin-top:16px"></div>
         </div>
     </div>
 </div>
@@ -974,9 +953,11 @@ async function loadPatients() {
         const filtered = q ? patientsCache.filter(p => (p.name||'').toLowerCase().includes(q) || (p.mrn||'').toLowerCase().includes(q)) : patientsCache;
         renderPatients(filtered);
     } catch (e) {
-        document.getElementById('patients').innerHTML = '<div class="muted" style="padding:10px">Failed to load patients</div>';
+        el.innerHTML = 'Failed to load MedGemma status.';
     }
 }
+
+loadMedGemma();
 
 function htmlesc(str){return (str||'').toString().replace(/[&<>\"]/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[s]));}
 
@@ -1092,27 +1073,8 @@ async function postJson(url) {
     return r.json().catch(()=>({ok:true}))
 }
 
-async function analyzeImaging(studyId){
-    try { await postJson(`/medgemma/analyze/imaging/${studyId}`); if (currentPatientId) await selectPatient(currentPatientId); }
-    catch(e){ alert('Failed to analyze imaging'); }
-}
-async function analyzeLabs(patientId){
-    try { await postJson(`/medgemma/analyze/labs/${patientId}`); if (currentPatientId) await selectPatient(currentPatientId); }
-    catch(e){ alert('Failed to analyze labs'); }
-}
-async function secondOpinion(patientId){
-    try { await postJson(`/medgemma/second-opinion/${patientId}`); if (currentPatientId) await selectPatient(currentPatientId); }
-    catch(e){ alert('Failed to get second opinion'); }
-}
-
 // Init
 loadMedGemma();
-loadPatients();
-document.getElementById('search').addEventListener('input', () => {
-    const q = document.getElementById('search').value.trim().toLowerCase();
-    const filtered = q ? patientsCache.filter(p => (p.name||'').toLowerCase().includes(q) || (p.mrn||'').toLowerCase().includes(q)) : patientsCache;
-    renderPatients(filtered);
-});
 </script>
 </body>
 </html>

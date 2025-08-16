@@ -155,6 +155,7 @@
             gap: 2rem;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             margin-bottom: 2rem;
+            align-items: start;
         }
         
         .card {
@@ -164,11 +165,19 @@
             border-radius: 12px;
             padding: 2rem;
             transition: transform 0.2s, box-shadow 0.2s;
+            min-height: 700px;
+            display: flex;
+            flex-direction: column;
         }
         
         .card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-body {
+            flex: 1;
+            overflow-y: auto;
         }
         
         .card h2 {
@@ -221,7 +230,7 @@
         }
         
         .patients-container {
-            max-height: 400px;
+            height: 600px;
             overflow-y: auto;
             margin-top: 1rem;
         }
@@ -690,7 +699,7 @@
             </div>
             
             <div class="row" style="margin-bottom: 16px;">
-                <input id="patientSearch" type="search" placeholder="Search by name, MRN, or email" class="input" style="flex:1; margin-right: 8px;">
+                <input id="patientSearch" type="search" placeholder="Search by name, CNIC, or email" class="input" style="flex:1; margin-right: 8px;">
                 <select id="sexFilter" class="input" style="width: 120px;">
                     <option value="">All Genders</option>
                     <option value="male">Male</option>
@@ -709,7 +718,9 @@
                 <h2 id="patientDetailsTitle">Patient Details</h2>
                 <div id="patientDetailsMeta" class="muted">Select a patient to view comprehensive details.</div>
                 <div id="patientDetailsActions" class="row" style="margin:10px 0; display:none">
-                    <button class="btn outline" onclick="showEditPatientModal()">Edit Patient</button>
+                    <button class="btn outline" onclick="editPatient(currentPatientId)">Edit Patient</button>
+                    <button class="btn primary" onclick="analyzeLabs(currentPatientId)">Analyze Labs</button>
+                    <button class="btn ghost" onclick="secondOpinion(currentPatientId)">Combined Second Opinion</button>
                 </div>
             </div>
             <div class="card-body">
@@ -719,6 +730,46 @@
                 <div id="patientRx" style="margin-top:16px"></div>
                 <div id="patientNotes" style="margin-top:16px"></div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Medical Data Modals -->
+<!-- Modal for Imaging Studies -->
+<div id="imagingModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Imaging Studies</h3>
+            <button class="modal-close" onclick="closeModal('imagingModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="imagingModalBody">
+            Loading...
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Lab Results -->
+<div id="labModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Laboratory Results</h3>
+            <button class="modal-close" onclick="closeModal('labModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="labModalBody">
+            Loading...
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Prescriptions -->
+<div id="rxModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Prescriptions</h3>
+            <button class="modal-close" onclick="closeModal('rxModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="rxModalBody">
+            Loading...
         </div>
     </div>
 </div>
@@ -735,7 +786,7 @@
             <form id="createPatientForm">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="patientMrn">Medical Record Number (MRN) *</label>
+                        <label for="patientMrn">CNIC Number *</label>
                         <input type="text" id="patientMrn" name="mrn" class="input" required>
                     </div>
                     <div class="form-group">
@@ -821,7 +872,7 @@
                 <input type="hidden" id="editPatientId" name="id">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="editPatientMrn">Medical Record Number (MRN) *</label>
+                        <label for="editPatientMrn">CNIC Number *</label>
                         <input type="text" id="editPatientMrn" name="mrn" class="input" required>
                     </div>
                     <div class="form-group">
@@ -927,6 +978,10 @@ let doctorsData = [];
 
 function htmlesc(str) { 
     return (str||'').toString().replace(/[&<>\"]/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[s])); 
+}
+
+function tag(text, cls = '') {
+    return `<span class="tag ${cls}">${text}</span>`;
 }
 
 function formatAiResults(result) {
@@ -1082,6 +1137,11 @@ function renderPatients(patients) {
         const initials = patient.name ? patient.name.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase() : 'P';
         const age = patient.dob ? calculateAge(patient.dob) : 'Unknown';
         
+        // Count medical data
+        const imagingCount = (patient.imaging_studies && patient.imaging_studies.length) || (patient.counts && patient.counts.imaging_studies) || 0;
+        const labCount = (patient.lab_orders && patient.lab_orders.length) || (patient.counts && patient.counts.lab_orders) || 0;
+        const rxCount = (patient.prescriptions && patient.prescriptions.length) || (patient.counts && patient.counts.prescriptions) || 0;
+        
         return `
             <div class="patient-card" onclick="selectPatient(${patient.id})">
                 <div class="patient-avatar">
@@ -1089,13 +1149,24 @@ function renderPatients(patients) {
                 </div>
                 <div class="patient-info">
                     <h3>${htmlesc(patient.name || 'Unknown Name')}</h3>
-                    <p class="patient-mrn">MRN: ${htmlesc(patient.mrn || 'N/A')}</p>
+                    <p class="patient-cnic">CNIC: ${htmlesc(patient.mrn || 'N/A')}</p>
                     <p class="patient-details">
                         Age: ${age} • ${htmlesc(patient.sex || 'Unknown')} • DOB: ${htmlesc(patient.dob || 'N/A')}
                     </p>
                     <p class="patient-contact">
                         ${htmlesc(patient.phone || 'No phone')} • ${htmlesc(patient.email || 'No email')}
                     </p>
+                    <div class="patient-medical-indicators">
+                        <span class="medical-tag" onclick="event.stopPropagation(); showImagingModal(${patient.id})">
+                            📸 IMG ${imagingCount}
+                        </span>
+                        <span class="medical-tag" onclick="event.stopPropagation(); showLabModal(${patient.id})">
+                            🧪 LAB ${labCount}
+                        </span>
+                        <span class="medical-tag" onclick="event.stopPropagation(); showRxModal(${patient.id})">
+                            💊 RX ${rxCount}
+                        </span>
+                    </div>
                 </div>
                 <div class="patient-actions" onclick="event.stopPropagation()">
                     <button class="btn small primary" onclick="editPatient(${patient.id})">Edit</button>
@@ -1139,16 +1210,11 @@ async function selectPatient(patientId) {
         
         const title = patient.name || 'Unknown Patient';
         document.getElementById('patientDetailsTitle').innerText = title;
-        document.getElementById('patientDetailsMeta').innerHTML = `MRN: <b>${htmlesc(patient.mrn||'N/A')}</b> • DOB: ${htmlesc(patient.dob||'N/A')} • ${htmlesc(patient.sex||'Unknown')}`;
+        document.getElementById('patientDetailsMeta').innerHTML = `CNIC: <b>${htmlesc(patient.mrn||'N/A')}</b> • DOB: ${htmlesc(patient.dob||'N/A')} • ${htmlesc(patient.sex||'Unknown')}`;
 
         // Show actions
         const actions = document.getElementById('patientDetailsActions');
         actions.style.display = 'flex';
-        actions.innerHTML = `
-            <button class="btn outline" onclick="editPatient(${patient.id})">Edit Patient</button>
-            <button class="btn primary" onclick="analyzeLabs(${patient.id})">Analyze Labs</button>
-            <button class="btn ghost" onclick="secondOpinion(${patient.id})">Combined Second Opinion</button>
-        `;
 
         // Basic Info - Beautiful Profile Layout
         let basicHtml = `
@@ -1159,7 +1225,7 @@ async function selectPatient(patientId) {
                     </div>
                     <div class="profile-info">
                         <h3 class="profile-name">${htmlesc(patient.name || 'Unknown Patient')}</h3>
-                        <p class="profile-meta">MRN: ${htmlesc(patient.mrn || 'N/A')} • ${htmlesc(patient.sex || 'Unknown')} • Age: ${calculateAgeFromDob(patient.dob)}</p>
+                        <p class="profile-meta">CNIC: ${htmlesc(patient.mrn || 'N/A')} • ${htmlesc(patient.sex || 'Unknown')} • Age: ${calculateAgeFromDob(patient.dob)}</p>
                     </div>
                 </div>
                 
@@ -1180,7 +1246,7 @@ async function selectPatient(patientId) {
                                 <span class="detail-value">${htmlesc(patient.sex || 'N/A')}</span>
                             </div>
                             <div class="detail-item">
-                                <span class="detail-label">Medical Record Number</span>
+                                <span class="detail-label">CNIC Number</span>
                                 <span class="detail-value">${htmlesc(patient.mrn || 'N/A')}</span>
                             </div>
                         </div>
@@ -1305,6 +1371,7 @@ async function selectPatient(patientId) {
         
     } catch (e) {
         document.getElementById('patientDetailsMeta').innerText = 'Failed to load patient details.';
+        console.error('Error loading patient details:', e);
     }
 }
 
@@ -1692,6 +1759,139 @@ function populateInvoiceDoctorSelect(doctors) {
     });
 }
 
+// Medical Data Modal Functions
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+async function showImagingModal(patientId) {
+    try {
+        showModal('imagingModal');
+        const modalBody = document.getElementById('imagingModalBody');
+        modalBody.innerHTML = 'Loading imaging studies...';
+        
+        const response = await fetch(`/reports/patients/${patientId}`, {
+            headers: {'Accept': 'application/json'}
+        });
+        const data = await response.json();
+        const patient = data.data;
+        
+        if (!patient.imaging_studies || patient.imaging_studies.length === 0) {
+            modalBody.innerHTML = '<div class="muted">No imaging studies found for this patient.</div>';
+            return;
+        }
+        
+        let html = '<div class="image-grid">';
+        patient.imaging_studies.forEach(study => {
+            const studyDate = new Date(study.started_at).toLocaleDateString();
+            html += `
+                <div class="image-item" style="padding: 1rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; margin-bottom: 1rem;">
+                    <div class="image-placeholder" style="text-align: center; margin-bottom: 0.5rem;">
+                        <i class="fas fa-x-ray" style="font-size: 2rem; color: #667eea;"></i>
+                    </div>
+                    <div><strong>${study.modality}</strong></div>
+                    <div class="muted">${study.description}</div>
+                    <div class="muted">${studyDate}</div>
+                    <div class="muted">Status: ${study.status}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        
+        modalBody.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading imaging studies:', error);
+        document.getElementById('imagingModalBody').innerHTML = '<div class="muted">Error loading imaging studies.</div>';
+    }
+}
+
+async function showLabModal(patientId) {
+    try {
+        showModal('labModal');
+        const modalBody = document.getElementById('labModalBody');
+        modalBody.innerHTML = 'Loading lab results...';
+        
+        const response = await fetch(`/reports/patients/${patientId}`, {
+            headers: {'Accept': 'application/json'}
+        });
+        const data = await response.json();
+        const patient = data.data;
+        
+        if (!patient.lab_orders || patient.lab_orders.length === 0) {
+            modalBody.innerHTML = '<div class="muted">No lab results found for this patient.</div>';
+            return;
+        }
+        
+        let html = '<table class="table" style="width: 100%; color: #fff;"><thead><tr><th>Test</th><th>Result</th><th>Flag</th><th>Reference Range</th><th>Notes</th></tr></thead><tbody>';
+        patient.lab_orders.forEach(lab => {
+            const flagClass = lab.result_flag === 'critical' ? 'err' : (lab.result_flag === 'normal' ? 'ok' : 'warn');
+            const flagTag = lab.result_flag ? `<span class="tag ${flagClass}">${htmlesc(lab.result_flag)}</span>` : '-';
+            html += `
+                <tr>
+                    <td><strong>${htmlesc(lab.code || '')} ${htmlesc(lab.name || '')}</strong></td>
+                    <td>${htmlesc(lab.result_value || '')}</td>
+                    <td>${flagTag}</td>
+                    <td>${htmlesc(lab.reference_range || '-')}</td>
+                    <td>${htmlesc(lab.result_notes || '-')}</td>
+                </tr>
+            `;
+        });
+        html += '</tbody></table>';
+        
+        modalBody.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading lab results:', error);
+        document.getElementById('labModalBody').innerHTML = '<div class="muted">Error loading lab results.</div>';
+    }
+}
+
+async function showRxModal(patientId) {
+    try {
+        showModal('rxModal');
+        const modalBody = document.getElementById('rxModalBody');
+        modalBody.innerHTML = 'Loading prescriptions...';
+        
+        const response = await fetch(`/reports/patients/${patientId}`, {
+            headers: {'Accept': 'application/json'}
+        });
+        const data = await response.json();
+        const patient = data.data;
+        
+        if (!patient.prescriptions || patient.prescriptions.length === 0) {
+            modalBody.innerHTML = '<div class="muted">No prescriptions found for this patient.</div>';
+            return;
+        }
+        
+        let html = '<table class="table" style="width: 100%; color: #fff;"><thead><tr><th>Medication</th><th>Strength</th><th>Dosage</th><th>Frequency</th><th>Status</th><th>Prescriber</th></tr></thead><tbody>';
+        patient.prescriptions.forEach(rx => {
+            html += `
+                <tr>
+                    <td><strong>${htmlesc(rx.medication_name || rx.medication || '')}</strong></td>
+                    <td>${htmlesc(rx.strength || '-')}</td>
+                    <td>${htmlesc(rx.dosage_instruction || rx.dosage || '-')}</td>
+                    <td>${htmlesc(rx.frequency || '-')}</td>
+                    <td><span class="tag">${htmlesc(rx.status || 'Unknown')}</span></td>
+                    <td>${htmlesc(rx.prescriber_name || '-')}</td>
+                </tr>
+            `;
+        });
+        html += '</tbody></table>';
+        
+        modalBody.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading prescriptions:', error);
+        document.getElementById('rxModalBody').innerHTML = '<div class="muted">Error loading prescriptions.</div>';
+    }
+}
+
 // Search and filter event listeners
 document.getElementById('patientSearch').addEventListener('input', filterPatients);
 document.getElementById('sexFilter').addEventListener('change', filterPatients);
@@ -1704,6 +1904,9 @@ window.onclick = function(event) {
     const createModal = document.getElementById('createPatientModal');
     const editModal = document.getElementById('editPatientModal');
     const invoiceModal = document.getElementById('invoiceModal');
+    const imagingModal = document.getElementById('imagingModal');
+    const labModal = document.getElementById('labModal');
+    const rxModal = document.getElementById('rxModal');
     
     if (event.target === createModal) {
         closeCreatePatientModal();
@@ -1715,6 +1918,18 @@ window.onclick = function(event) {
     
     if (event.target === invoiceModal) {
         closeInvoiceModal();
+    }
+    
+    if (event.target === imagingModal) {
+        closeModal('imagingModal');
+    }
+    
+    if (event.target === labModal) {
+        closeModal('labModal');
+    }
+    
+    if (event.target === rxModal) {
+        closeModal('rxModal');
     }
 }
 </script>
@@ -1732,22 +1947,23 @@ window.onclick = function(event) {
     display: flex;
     align-items: center;
     padding: 16px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
 }
 
 .patient-card:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
     transform: translateY(-1px);
 }
 
 .patient-card.selected {
-    background: #dbeafe;
-    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.5);
 }
 
 .patient-avatar {
@@ -1771,15 +1987,147 @@ window.onclick = function(event) {
     flex: 1;
 }
 
+.patient-medical-indicators {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.medical-tag {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.medical-tag:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Modal Overlay Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.modal-title {
+    color: #fff;
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    color: #fff;
+}
+
+.tag {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tag.ok {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.tag.warn {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.tag.err {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.patient-info {
+    flex: 1;
+}
+
 .patient-info h3 {
     margin: 0 0 4px 0;
-    color: #2d3748;
+    color: #ffffff;
     font-size: 16px;
 }
 
-.patient-mrn {
+.patient-cnic {
     margin: 0 0 4px 0;
-    color: #2b6cb0;
+    color: rgba(59, 130, 246, 0.9);
     font-weight: 600;
     font-size: 14px;
 }
@@ -1818,9 +2166,11 @@ window.onclick = function(event) {
     max-width: 700px;
     width: 90%;
     margin: 30px auto;
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 10px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
     max-height: 90vh;
     overflow-y: auto;
     z-index: 1001;
@@ -1831,14 +2181,14 @@ window.onclick = function(event) {
     justify-content: space-between;
     align-items: center;
     padding: 20px;
-    border-bottom: 1px solid #e2e8f0;
-    background: #f8fafc;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 10px 10px 0 0;
 }
 
 .modal-header h3 {
     margin: 0;
-    color: #2d3748;
+    color: #ffffff;
     font-size: 18px;
     font-weight: 600;
 }
@@ -1848,7 +2198,7 @@ window.onclick = function(event) {
     border: none;
     font-size: 24px;
     cursor: pointer;
-    color: #718096;
+    color: rgba(255, 255, 255, 0.7);
     padding: 0;
     width: 30px;
     height: 30px;
@@ -1860,14 +2210,14 @@ window.onclick = function(event) {
 }
 
 .btn-close:hover {
-    color: #4a5568;
-    background: #e2e8f0;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .modal-body {
     padding: 25px;
-    background: #ffffff;
-    color: #2d3748;
+    background: transparent;
+    color: #ffffff;
 }
 
 .form-row {
@@ -1885,39 +2235,40 @@ window.onclick = function(event) {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #374151;
+    color: #ffffff;
     font-size: 14px;
 }
 
 .modal .input {
     width: 100%;
     padding: 12px 16px;
-    border: 1px solid #d1d5db;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 6px;
     font-size: 14px;
-    background: #ffffff !important;
-    color: #374151 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
     transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
 }
 
 .modal .input:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.8);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .modal .input::placeholder {
-    color: #9ca3af !important;
+    color: rgba(255, 255, 255, 0.6) !important;
 }
 
 .modal select.input {
-    background: #ffffff !important;
-    color: #374151 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
 }
 
 .modal textarea.input {
-    background: #ffffff !important;
-    color: #374151 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
     resize: vertical;
     min-height: 80px;
 }
@@ -1925,14 +2276,15 @@ window.onclick = function(event) {
 .billing-section {
     margin-top: 25px;
     padding: 20px;
-    background: #f8fafc;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .billing-section h4 {
     margin: 0 0 15px 0;
-    color: #1f2937;
+    color: #ffffff;
     font-size: 16px;
     font-weight: 600;
 }
@@ -1943,7 +2295,7 @@ window.onclick = function(event) {
     justify-content: flex-end;
     margin-top: 25px;
     padding-top: 20px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .alert {
@@ -1954,34 +2306,35 @@ window.onclick = function(event) {
     justify-content: space-between;
     align-items: center;
     font-size: 14px;
+    backdrop-filter: blur(10px);
 }
 
 .alert-info {
-    background: #dbeafe;
-    border: 1px solid #93c5fd;
-    color: #1e40af;
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    color: #ffffff;
 }
 
 .alert-success {
-    background: #dcfce7;
-    border: 1px solid #86efac;
-    color: #166534;
+    background: rgba(34, 197, 94, 0.2);
+    border: 1px solid rgba(34, 197, 94, 0.5);
+    color: #ffffff;
 }
 
 .alert-error {
-    background: #fee2e2;
-    border: 1px solid #fca5a5;
-    color: #dc2626;
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #ffffff;
 }
 
 .loading, .error-state, .empty-state {
     text-align: center;
     padding: 40px;
-    color: #718096;
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .error-state {
-    color: #e53e3e;
+    color: rgba(239, 68, 68, 0.9);
 }
 
 .btn.danger {
@@ -2010,7 +2363,7 @@ window.onclick = function(event) {
 }
 
 .info-item strong {
-    color: #4a5568;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .table {
@@ -2023,22 +2376,24 @@ window.onclick = function(event) {
 .table th, .table td {
     padding: 8px 12px;
     text-align: left;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .table th {
-    background: #f8fafc;
+    background: rgba(255, 255, 255, 0.05);
     font-weight: 600;
-    color: #4a5568;
+    color: #ffffff;
 }
 
 .table tr:hover {
-    background: #f8fafc;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 /* Patient Profile Styles */
 .patient-profile {
-    background: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     padding: 0;
 }
@@ -2185,6 +2540,161 @@ window.onclick = function(event) {
 #patientDetailsActions .btn {
     font-size: 12px;
     padding: 6px 12px;
+}
+
+/* Patient Profile Styles */
+.patient-profile {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 0;
+}
+
+.profile-avatar {
+    margin-right: 20px;
+}
+
+.avatar-circle-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.profile-name {
+    margin: 0 0 5px 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.profile-meta {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 14px;
+}
+
+.profile-details {
+    padding: 20px;
+}
+
+.detail-section {
+    margin-bottom: 25px;
+}
+
+.detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.detail-section h4 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-section h4 i {
+    margin-right: 8px;
+    color: #667eea;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 6px;
+}
+
+.detail-item-full {
+    grid-column: 1 / -1;
+}
+
+.detail-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 500;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.detail-value a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.detail-value a:hover {
+    text-decoration: underline;
+}
+
+/* Card improvements */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.card-header .muted {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 5px 0 0 0;
+}
+
+.card-body {
+    padding: 0;
+}
+
+/* Action buttons in header */
+#patientDetailsActions {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0 0 0;
 }
 
 /* Responsive design */

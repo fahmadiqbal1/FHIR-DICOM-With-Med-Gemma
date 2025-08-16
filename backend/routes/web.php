@@ -9,6 +9,7 @@ use App\Http\Controllers\MedGemmaController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
+use App\Helpers\RoleHelper;
 use App\Http\Controllers\Api\UserController as ApiUserController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\FinancialDashboardController;
@@ -66,14 +67,34 @@ Route::get('/app', function () {
     return view('app');
 })->name('app');
 
-// Dashboard redirect to app
+// Dashboard page (role-based view)
 Route::get('/dashboard', function () {
-    return redirect('/app');
+    $user = Auth::user();
+    
+    // Redirect based on user role using helper
+    if (RoleHelper::isRadiologist($user)) {
+        return view('radiologist-dashboard');
+    } elseif (RoleHelper::isLabTechnician($user)) {
+        return view('lab-tech-dashboard');
+    } elseif (RoleHelper::isDoctor($user)) {
+        return redirect()->route('patients'); // Doctors go to patient management
+    } elseif (RoleHelper::isAdmin($user)) {
+        return view('dashboard'); // Admins get the main dashboard
+    } else {
+        return view('dashboard'); // Default dashboard for other roles
+    }
 })->name('dashboard');
 
-// Patients page (dedicated view)
+// Patients page (role-based view)
 Route::get('/patients', function () {
-    return view('patients');
+    $user = Auth::user();
+    
+    // Check if user is admin or has admin role
+    if ($user && ($user->role === 'admin' || $user->is_admin)) {
+        return view('patients'); // Full admin view with add/invoice capabilities
+    } else {
+        return view('patients-doctor'); // Doctor view with restricted permissions
+    }
 })->name('patients');
 
 // MedGemma page (dedicated view)
@@ -81,15 +102,25 @@ Route::get('/medgemma', function () {
     return view('medgemma');
 })->name('medgemma');
 
-// Reports page (dedicated view)
+// Reports now integrated into dashboard - redirect to dashboard
 Route::get('/reports', function () {
-    return view('reports');
+    return redirect('/dashboard');
 })->name('reports');
 
 // Help page
 Route::get('/help', function () {
     return view('help');
 })->name('help');
+
+// Radiologist dashboard
+Route::get('/radiologist', function () {
+    return view('radiologist-dashboard');
+})->middleware(['radiologist'])->name('radiologist.dashboard');
+
+// Lab Technician dashboard
+Route::get('/lab-tech', function () {
+    return view('lab-tech-dashboard');
+})->name('lab-tech.dashboard');
 
 // DICOM upload page
 Route::get('/dicom-upload', function () {
@@ -126,6 +157,8 @@ Route::get('/test-financial', function () {
 Route::get('/quick-login', [QuickLoginController::class, 'showQuickLogin']);
 Route::get('/quick-login/admin', [QuickLoginController::class, 'loginAsAdmin']);
 Route::get('/quick-login/doctor', [QuickLoginController::class, 'loginAsDoctor']);
+Route::get('/quick-login/radiologist', [QuickLoginController::class, 'loginAsRadiologist']);
+Route::get('/quick-login/lab-tech', [QuickLoginController::class, 'loginAsLabTech']);
 });
 
 // MedGemma integration status
@@ -249,6 +282,40 @@ Route::prefix('api')->name('api.')->group(function () {
         ]);
     })->name('users.earnings');
     
+    // Patients API routes
+    Route::get('/patients', function () {
+        try {
+            $patients = \App\Models\Patient::select('id', 'mrn', 'first_name', 'last_name', 'name', 'dob', 'sex')
+                ->orderBy('created_at', 'desc')
+                ->get();
+            
+            // Format patient names consistently
+            $formattedPatients = $patients->map(function($patient) {
+                $name = $patient->name;
+                if (empty($name)) {
+                    $name = trim(($patient->first_name ?? '') . ' ' . ($patient->last_name ?? ''));
+                }
+                
+                return [
+                    'id' => $patient->id,
+                    'mrn' => $patient->mrn,
+                    'name' => $name ?: 'Unknown Patient',
+                    'first_name' => $patient->first_name,
+                    'last_name' => $patient->last_name,
+                    'dob' => $patient->dob,
+                    'sex' => $patient->sex,
+                ];
+            });
+            
+            return response()->json($formattedPatients);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to load patients',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    })->name('patients.index');
+    
     // Patient routes moved to api.php for proper handling with PatientController
     // Use /api/patients endpoint which includes proper name formatting and pagination
     
@@ -370,4 +437,6 @@ Route::prefix('api')->name('api.')->group(function () {
             'ai' => \App\Models\AiResult::count()
         ]);
     })->name('dashboard.stats');
+    
+    // Clinical API routes moved to api.php for proper routing
 });

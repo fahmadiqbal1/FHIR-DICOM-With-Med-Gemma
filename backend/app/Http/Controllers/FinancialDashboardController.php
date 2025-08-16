@@ -20,53 +20,133 @@ class FinancialDashboardController extends Controller
         $doctorId = Auth::id();
         $date = $request->get('date', Carbon::today()->toDateString());
         
-        // Get today's earnings for the doctor
-        $todayEarnings = DoctorEarning::where('doctor_id', $doctorId)
-            ->where('earning_date', $date)
-            ->first();
+        // Generate demo data for doctor financial dashboard (Check-ups only)
+        $revenuePercentage = 70; // Doctor gets 70% of check-up consultations
         
-        // Get patient count for today
-        $todayPatients = $todayEarnings ? $todayEarnings->patients_attended : 0;
+        // Demo data for today's check-up consultations
+        $todayConsultations = $this->getTodayConsultationCount($date);
+        $todayPatients = $todayConsultations; // Assuming 1 consultation per patient
+        $checkupFee = 120; // Base check-up fee
+        $totalRevenue = $todayConsultations * $checkupFee;
+        $todayEarnings = $totalRevenue * ($revenuePercentage / 100);
         
-        // Get total appointments for today
-        $todayAppointments = $todayEarnings ? $todayEarnings->total_consultations : 0;
+        // Demo data for weekly earnings (check-ups only)
+        $weeklyConsultations = $this->getWeeklyConsultationCount($date);
+        $weeklyRevenue = $weeklyConsultations * $checkupFee;
+        $weeklyEarnings = $weeklyRevenue * ($revenuePercentage / 100);
         
-        // Get weekly earnings
-        $weekStart = Carbon::parse($date)->startOfWeek();
-        $weekEnd = Carbon::parse($date)->endOfWeek();
+        // Demo data for monthly earnings (check-ups only)
+        $monthlyConsultations = $this->getMonthlyConsultationCount($date);
+        $monthlyRevenue = $monthlyConsultations * $checkupFee;
+        $monthlyEarnings = $monthlyRevenue * ($revenuePercentage / 100);
         
-        $weeklyEarnings = DoctorEarning::where('doctor_id', $doctorId)
-            ->whereBetween('earning_date', [$weekStart, $weekEnd])
-            ->sum('doctor_share');
+        // Calculate performance metrics
+        $avgPerPatient = $todayPatients > 0 ? $todayEarnings / $todayPatients : 0;
+        $patientSatisfaction = 94; // Demo satisfaction score
+        $efficiency = 88; // Demo efficiency score
         
-        // Get monthly earnings
-        $monthStart = Carbon::parse($date)->startOfMonth();
-        $monthEnd = Carbon::parse($date)->endOfMonth();
+        // Generate chart data for last 7 days
+        $chartData = $this->generateChartData($date, $checkupFee, $revenuePercentage);
         
-        $monthlyEarnings = DoctorEarning::where('doctor_id', $doctorId)
-            ->whereBetween('earning_date', [$monthStart, $monthEnd])
-            ->sum('doctor_share');
+        // Generate recent consultations demo data
+        $recentConsultations = $this->generateRecentConsultations($date, $checkupFee, $revenuePercentage);
         
-        // Get recent daily earnings for chart (last 7 days)
-        $recentEarnings = DoctorEarning::where('doctor_id', $doctorId)
-            ->whereBetween('earning_date', [Carbon::parse($date)->subDays(6), $date])
-            ->orderBy('earning_date')
-            ->get();
-        
-        // Get doctor's revenue percentage
-        $doctor = User::find($doctorId);
-        $revenuePercentage = $doctor->revenue_percentage ?? 70;
-        
-        return view('financial.doctor-dashboard', compact(
+        return view('financial.doctor-dashboard-clean', compact(
             'todayEarnings',
-            'todayPatients', 
-            'todayAppointments',
+            'todayConsultations',
+            'todayPatients',
             'weeklyEarnings',
+            'weeklyConsultations',
             'monthlyEarnings',
-            'recentEarnings',
+            'monthlyConsultations',
             'revenuePercentage',
+            'avgPerPatient',
+            'patientSatisfaction',
+            'efficiency',
+            'totalRevenue',
+            'chartData',
+            'recentConsultations',
             'date'
         ));
+    }
+    
+    private function getTodayConsultationCount($date)
+    {
+        // Demo data - varies by day of week
+        $dayOfWeek = Carbon::parse($date)->dayOfWeek;
+        $baseCounts = [1, 8, 12, 15, 18, 14, 6]; // Sun-Sat
+        return $baseCounts[$dayOfWeek] + rand(-2, 3);
+    }
+    
+    private function getWeeklyConsultationCount($date)
+    {
+        // Demo data - sum for the week
+        $total = 0;
+        $weekStart = Carbon::parse($date)->startOfWeek();
+        for ($i = 0; $i < 7; $i++) {
+            $dayDate = $weekStart->copy()->addDays($i);
+            if ($dayDate->lte(Carbon::parse($date))) {
+                $total += $this->getTodayConsultationCount($dayDate->toDateString());
+            }
+        }
+        return $total;
+    }
+    
+    private function getMonthlyConsultationCount($date)
+    {
+        // Demo data - estimate for the month
+        $dayOfMonth = Carbon::parse($date)->day;
+        $averagePerDay = 12;
+        return $dayOfMonth * $averagePerDay + rand(-20, 30);
+    }
+    
+    private function generateChartData($date, $checkupFee, $revenuePercentage)
+    {
+        $labels = [];
+        $values = [];
+        
+        for ($i = 6; $i >= 0; $i--) {
+            $chartDate = Carbon::parse($date)->subDays($i);
+            $consultations = $this->getTodayConsultationCount($chartDate->toDateString());
+            $earnings = $consultations * $checkupFee * ($revenuePercentage / 100);
+            
+            $labels[] = $chartDate->format('M j');
+            $values[] = round($earnings, 2);
+        }
+        
+        return [
+            'labels' => $labels,
+            'values' => $values
+        ];
+    }
+    
+    private function generateRecentConsultations($date, $checkupFee, $revenuePercentage)
+    {
+        $consultations = [];
+        $patientNames = [
+            'Sarah Johnson', 'Michael Chen', 'Emily Davis', 'James Wilson',
+            'Maria Garcia', 'David Brown', 'Lisa Anderson', 'Robert Taylor',
+            'Jennifer Lee', 'Christopher Martin', 'Amanda White', 'Daniel Garcia'
+        ];
+        
+        $consultationCount = $this->getTodayConsultationCount($date);
+        
+        for ($i = 0; $i < min($consultationCount, 8); $i++) {
+            $time = Carbon::parse($date)->setHour(9 + $i)->setMinute(rand(0, 45));
+            $duration = rand(15, 30) . ' min';
+            $doctorFee = $checkupFee * ($revenuePercentage / 100);
+            
+            $consultations[] = [
+                'patient_name' => $patientNames[array_rand($patientNames)],
+                'service' => 'General Check-up',
+                'time' => $time->format('g:i A'),
+                'duration' => $duration,
+                'doctor_fee' => $doctorFee,
+                'total_fee' => $checkupFee
+            ];
+        }
+        
+        return array_reverse($consultations); // Most recent first
     }
     
     public function adminDashboard(Request $request)

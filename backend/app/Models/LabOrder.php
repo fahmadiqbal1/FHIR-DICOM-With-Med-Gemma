@@ -11,13 +11,26 @@ class LabOrder extends Model
     use HasFactory;
 
     protected $fillable = [
-        'patient_id','lab_test_id','ordered_by','priority','status','ordered_at','collected_at','resulted_at','result_value','result_flag','result_notes'
+        'patient_id',
+        'lab_test_id',
+        'ordered_by',
+        'priority',
+        'status',
+        'ordered_at',
+        'collected_at',
+        'resulted_at',
+        'result_value',
+        'result_flag',
+        'result_notes',
+        'invoice_id',
+        'price'
     ];
 
     protected $casts = [
         'ordered_at' => 'datetime',
         'collected_at' => 'datetime',
         'resulted_at' => 'datetime',
+        'price' => 'decimal:2'
     ];
 
     public function patient(): BelongsTo
@@ -33,5 +46,22 @@ class LabOrder extends Model
     public function orderingProvider(): BelongsTo
     {
         return $this->belongsTo(User::class, 'ordered_by');
+    }
+
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class);
+    }
+
+    // Helper to get test name from relationship or fallback
+    public function getTestNameAttribute()
+    {
+        return $this->test?->name ?? 'Unknown Test';
+    }
+
+    // Helper to get test code from relationship or fallback
+    public function getTestCodeAttribute()
+    {
+        return $this->test?->code ?? 'N/A';
     }
 }

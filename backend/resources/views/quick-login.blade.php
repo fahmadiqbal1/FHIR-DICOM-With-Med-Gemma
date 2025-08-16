@@ -113,6 +113,28 @@
             <a href="/quick-login/doctor" class="login-btn">Login as Doctor</a>
         </div>
 
+        <div class="login-option">
+            <h3>🩻 Radiologist Dashboard</h3>
+            <ul class="feature-list">
+                <li>✅ Imaging study analysis</li>
+                <li>✅ AI-powered diagnostic assistance</li>
+                <li>✅ Second opinion workflows</li>
+                <li>✅ Report generation system</li>
+            </ul>
+            <a href="/quick-login/radiologist" class="login-btn">Login as Radiologist</a>
+        </div>
+
+        <div class="login-option">
+            <h3>🧪 Lab Technician Dashboard</h3>
+            <ul class="feature-list">
+                <li>✅ Lab order management</li>
+                <li>✅ Sample collection tracking</li>
+                <li>✅ Result submission workflow</li>
+                <li>✅ Priority-based task organization</li>
+            </ul>
+            <a href="/quick-login/lab-tech" class="login-btn">Login as Lab Tech</a>
+        </div>
+
         <div class="note">
             <strong>Demo Features:</strong><br>
             • 30 days of sample financial data<br>
@@ -124,7 +146,9 @@
             <div style="text-align: left; margin-top: 10px; font-family: monospace; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 5px;">
             <strong>Admin:</strong> admin@medgemma.com / admin123<br>
             <strong>Doctor 1:</strong> doctor1@medgemma.com / doctor123<br>
-            <strong>Doctor 2:</strong> doctor2@medgemma.com / doctor123
+            <strong>Doctor 2:</strong> doctor2@medgemma.com / doctor123<br>
+            <strong>Radiologist:</strong> radiologist@medgemma.com / radiologist123<br>
+            <strong>Lab Tech:</strong> labtech@medgemma.com / labtech123
             </div><br>
             <a href="/login" style="color: #667eea; text-decoration: none; font-weight: 600;">👉 Manual Login Page</a>
         </div>

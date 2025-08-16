@@ -51,6 +51,21 @@ class MedGemmaController extends Controller
         try {
             $result = $this->medGemmaService->analyzeImagingStudy($study);
 
+            // Check if the analysis was successful or failed due to validation
+            if (!$result['success']) {
+                return response()->json([
+                    'success' => false,
+                    'study_id' => $study->id,
+                    'error' => $result['error'] ?? 'Analysis failed',
+                    'error_type' => $result['error_type'] ?? 'unknown',
+                    'impression' => $result['impression'] ?? 'Analysis unavailable',
+                    'findings' => $result['findings'] ?? [],
+                    'recommendations' => $result['recommendations'] ?? [],
+                    'confidence' => $result['confidence'] ?? 0,
+                    'note' => $result['note'] ?? null
+                ], 400); // Bad Request for validation errors
+            }
+
             return response()->json([
                 'success' => true,
                 'study_id' => $study->id,

@@ -42,4 +42,10 @@ return [
         'model' => env('MEDGEMMA_MODEL', 'medgemma'),
     ],
 
+    'ocr' => [
+        'api_key' => env('OCR_API_KEY'),
+        'endpoint' => env('OCR_ENDPOINT', 'https://api.ocr.space/parse/image'),
+    ],
+
 ];
+

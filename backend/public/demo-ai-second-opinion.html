@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Second Opinion Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: white;
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .demo-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .cta-section {
+            text-align: center;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 15px;
+            padding: 3rem;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+        
+        .demo-steps {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🤖 AI Second Opinion Feature</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9;">Independent AI analysis of medical imaging studies</p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Independent Analysis</h3>
+                <p>AI provides completely independent assessment based solely on imaging data, without access to radiologist's findings or clinical history.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Instant Results</h3>
+                <p>Get AI analysis results in seconds, providing immediate second opinion for complex cases or quality assurance.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h3>Advanced AI Models</h3>
+                <p>Powered by MedGemma, a specialized medical AI model trained on extensive medical imaging datasets.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Educational Purpose</h3>
+                <p>Designed for educational and research purposes, supporting radiologist training and quality improvement initiatives.</p>
+            </div>
+        </div>
+
+        <div class="demo-steps">
+            <h2 style="text-align: center; margin-bottom: 2rem;">How to Use AI Second Opinion</h2>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>
+                    <strong>Access Completed Studies</strong><br>
+                    Navigate to the "Completed Studies" tab in the radiologist dashboard
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>
+                    <strong>Find Studies with Images</strong><br>
+                    Look for completed studies that have attached imaging files
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>
+                    <strong>Click AI Second Opinion</strong><br>
+                    Click the purple "🤖 AI Second Opinion" button to start AI analysis
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div>
+                    <strong>Review AI Results</strong><br>
+                    Compare AI findings with your radiological assessment for educational insights
+                </div>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2>Ready to Try AI Second Opinion?</h2>
+            <p style="margin-bottom: 2rem;">Experience the future of medical imaging analysis with AI-powered second opinions.</p>
+            
+            <a href="/quick-login/radiologist" class="cta-button">
+                👨‍⚕️ Login as Radiologist
+            </a>
+            <a href="/radiologist" class="cta-button">
+                🔬 Go to Dashboard
+            </a>
+        </div>
+
+        <div style="margin-top: 3rem; text-align: center; opacity: 0.7; font-size: 0.9rem;">
+            <p><strong>⚠️ Important Disclaimer:</strong> This AI analysis is for educational and research purposes only. It provides an independent opinion based solely on imaging data and should not replace professional medical judgment. Always rely on your clinical expertise and consider all available patient information.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -248,6 +248,175 @@
             opacity: 0.8;
         }
         
+        /* Patient History Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .large-modal {
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            color: white;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        
+        .modal-close:hover {
+            opacity: 1;
+        }
+        
+        .patient-history-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 1.5rem;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab-btn.active {
+            color: white;
+            border-bottom-color: #4CAF50;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .history-tab-content {
+            display: none;
+            padding: 0 1.5rem 1.5rem;
+        }
+        
+        .history-tab-content.active {
+            display: block;
+        }
+        
+        .patient-summary {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .patient-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .summary-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            display: block;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .stat-label {
+            display: block;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+        
+        .history-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .history-date {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        .history-content p {
+            margin: 0.5rem 0;
+            line-height: 1.5;
+        }
+        
+        .no-data {
+            text-align: center;
+            opacity: 0.7;
+            padding: 2rem;
+            font-style: italic;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            opacity: 0.7;
+        }
+        
+        .error-message {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 0, 0, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+        }
+        
         .form-label {
             color: white;
             font-weight: 500;
@@ -585,7 +754,194 @@
         }
 
         function viewPatient(patientId) {
-            alert('View patient details for ID: ' + patientId);
+            // Show patient history modal with comprehensive data
+            showPatientHistoryModal(patientId);
+        }
+        
+        function showPatientHistoryModal(patientId) {
+            // Create and show modal for patient history
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content large-modal">
+                    <div class="modal-header">
+                        <h3>Patient History</h3>
+                        <button class="modal-close" onclick="closePatientHistoryModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="patientHistoryContent">
+                            <div class="loading">Loading patient history...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            modal.id = 'patientHistoryModal';
+            document.body.appendChild(modal);
+            
+            // Load patient data
+            loadPatientHistory(patientId);
+        }
+        
+        function closePatientHistoryModal() {
+            const modal = document.getElementById('patientHistoryModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        async function loadPatientHistory(patientId) {
+            try {
+                // Use authenticated API endpoints - these require login
+                const patient = await fetch(`/api/patients/${patientId}`, {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    }
+                }).then(r => {
+                    if (!r.ok) throw new Error('Patient not found');
+                    return r.json();
+                });
+                
+                // Try to load notes, orders, and imaging - fail gracefully if endpoints don't exist or require auth
+                const [notes, orders, imaging] = await Promise.allSettled([
+                    fetch(`/api/patients/${patientId}/notes`, {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        }
+                    }).then(r => r.ok ? r.json() : []),
+                    fetch(`/api/patients/${patientId}/orders`, {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        }
+                    }).then(r => r.ok ? r.json() : []),
+                    fetch(`/api/patients/${patientId}/imaging`, {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        }
+                    }).then(r => r.ok ? r.json() : [])
+                ]);
+                
+                const patientNotes = notes.status === 'fulfilled' ? notes.value : [];
+                const patientOrders = orders.status === 'fulfilled' ? orders.value : [];
+                const patientImaging = imaging.status === 'fulfilled' ? imaging.value : [];
+                
+                // Display comprehensive patient history
+                displayPatientHistory(patient, patientNotes, patientOrders, patientImaging);
+                
+            } catch (error) {
+                console.error('Error loading patient history:', error);
+                document.getElementById('patientHistoryContent').innerHTML = `
+                    <div class="error-message">
+                        <p>Error loading patient history: ${error.message}</p>
+                        <p>Please ensure you are logged in and have permission to view patient data.</p>
+                        <button class="btn primary" onclick="loadPatientHistory(${patientId})">Retry</button>
+                    </div>
+                `;
+            }
+        }
+        
+        function displayPatientHistory(patient, notes, orders, imaging) {
+            const content = document.getElementById('patientHistoryContent');
+            
+            content.innerHTML = `
+                <div class="patient-history-tabs">
+                    <button class="tab-btn active" onclick="switchHistoryTab('overview')">Overview</button>
+                    <button class="tab-btn" onclick="switchHistoryTab('notes')">Clinical Notes (${notes.length})</button>
+                    <button class="tab-btn" onclick="switchHistoryTab('orders')">Lab Orders (${orders.length})</button>
+                    <button class="tab-btn" onclick="switchHistoryTab('imaging')">Imaging (${imaging.length})</button>
+                </div>
+                
+                <div id="overview-history" class="history-tab-content active">
+                    <div class="patient-summary">
+                        <h4>${patient.first_name} ${patient.last_name}</h4>
+                        <div class="patient-details">
+                            <p><strong>MRN:</strong> ${patient.mrn || 'N/A'}</p>
+                            <p><strong>DOB:</strong> ${patient.dob || 'N/A'}</p>
+                            <p><strong>Sex:</strong> ${patient.sex || 'N/A'}</p>
+                            <p><strong>Phone:</strong> ${patient.phone || 'N/A'}</p>
+                            <p><strong>Email:</strong> ${patient.email || 'N/A'}</p>
+                        </div>
+                        <div class="summary-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">${notes.length}</span>
+                                <span class="stat-label">Clinical Notes</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">${orders.length}</span>
+                                <span class="stat-label">Lab Orders</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">${imaging.length}</span>
+                                <span class="stat-label">Imaging Studies</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="notes-history" class="history-tab-content">
+                    ${notes.length > 0 ? notes.map(note => `
+                        <div class="history-item">
+                            <div class="history-header">
+                                <strong>Clinical Note</strong>
+                                <span class="history-date">${new Date(note.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <div class="history-content">
+                                ${note.soap_subjective ? `<p><strong>Subjective:</strong> ${note.soap_subjective}</p>` : ''}
+                                ${note.soap_objective ? `<p><strong>Objective:</strong> ${note.soap_objective}</p>` : ''}
+                                ${note.soap_assessment ? `<p><strong>Assessment:</strong> ${note.soap_assessment}</p>` : ''}
+                                ${note.soap_plan ? `<p><strong>Plan:</strong> ${note.soap_plan}</p>` : ''}
+                            </div>
+                        </div>
+                    `).join('') : '<p class="no-data">No clinical notes found.</p>'}
+                </div>
+                
+                <div id="orders-history" class="history-tab-content">
+                    ${orders.length > 0 ? orders.map(order => `
+                        <div class="history-item">
+                            <div class="history-header">
+                                <strong>Lab Order</strong>
+                                <span class="history-date">${new Date(order.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <div class="history-content">
+                                <p><strong>Test:</strong> ${order.test_name || 'N/A'}</p>
+                                <p><strong>Status:</strong> ${order.status || 'N/A'}</p>
+                                ${order.results ? `<p><strong>Results:</strong> ${order.results}</p>` : ''}
+                                ${order.notes ? `<p><strong>Notes:</strong> ${order.notes}</p>` : ''}
+                            </div>
+                        </div>
+                    `).join('') : '<p class="no-data">No lab orders found.</p>'}
+                </div>
+                
+                <div id="imaging-history" class="history-tab-content">
+                    ${imaging.length > 0 ? imaging.map(study => `
+                        <div class="history-item">
+                            <div class="history-header">
+                                <strong>Imaging Study</strong>
+                                <span class="history-date">${new Date(study.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <div class="history-content">
+                                <p><strong>Description:</strong> ${study.description || 'N/A'}</p>
+                                <p><strong>Modality:</strong> ${study.modality || 'N/A'}</p>
+                                <p><strong>Status:</strong> ${study.status || 'N/A'}</p>
+                                ${study.notes ? `<p><strong>Notes:</strong> ${study.notes}</p>` : ''}
+                            </div>
+                        </div>
+                    `).join('') : '<p class="no-data">No imaging studies found.</p>'}
+                </div>
+            `;
+        }
+        
+        function switchHistoryTab(tabName) {
+            // Remove active class from all tabs and content
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.history-tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-history`).classList.add('active');
         }
 
         // Edit patient

@@ -65,12 +65,49 @@
             font-weight: 500;
             font-size: 1.08rem;
             transition: background 0.3s, transform 0.2s;
+            position: relative;
         }
         .nav a.active, .nav a:hover {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
             transform: translateY(-2px) scale(1.04);
             box-shadow: 0 2px 8px rgba(102,126,234,0.10);
+        }
+        
+        /* Lab Technician Navigation Styles */
+        .custom-nav-tab {
+            background: transparent !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+            padding: 0.7rem 1.2rem !important;
+            border-radius: 8px !important;
+            text-decoration: none !important;
+            font-weight: 500 !important;
+            font-size: 0.95rem !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            cursor: pointer !important;
+        }
+        
+        .custom-nav-tab:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            color: white !important;
+            transform: translateY(-2px) !important;
+        }
+        
+        .custom-nav-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border-color: transparent !important;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+            transform: translateY(-2px) scale(1.04) !important;
+        }
+        
+        .custom-nav-tab i {
+            font-size: 0.9rem;
         }
         .user-info {
             display: flex;
@@ -167,13 +204,37 @@
             </div>
             
             <nav class="nav">
-                <a href="/dashboard">Dashboard</a>
-                <a href="/patients">Patients</a>
-                <a href="/medgemma">AI Analysis</a>
-                <a href="/reports">Reports</a>
-                <a href="/dicom-upload">DICOM Upload</a>
                 @auth
-                    <a href="{{ route('financial.doctor-dashboard') }}">Financial</a>
+                    @if(\App\Helpers\RoleHelper::isLabTechnician(Auth::user()))
+                        {{-- Lab Technician specific navigation --}}
+                        <a href="/lab-tech" class="custom-nav-tab {{ request()->is('lab-tech') && !request()->has('hash') ? 'active' : '' }}" id="orders-tab" data-bs-toggle="pill" data-bs-target="#orders" data-target="orders">
+                            <i class="fas fa-vials"></i>Dashboard
+                        </a>
+                        <a href="/lab-tech#equipment" class="custom-nav-tab lab-nav-link" id="equipment-tab" data-bs-toggle="pill" data-bs-target="#equipment" data-target="equipment">
+                            <i class="fas fa-microscope"></i>Sampling & Results
+                        </a>
+                        <a href="/lab-tech#invoices" class="custom-nav-tab lab-nav-link" id="invoices-tab" data-bs-toggle="pill" data-bs-target="#invoices" data-target="invoices">
+                            <i class="fas fa-flask"></i>Lab Financials
+                        </a>
+                        <a href="/lab-tech#analytics" class="custom-nav-tab lab-nav-link" id="analytics-tab" data-bs-toggle="pill" data-bs-target="#analytics" data-target="analytics">
+                            <i class="fas fa-chart-line"></i>Configuration
+                        </a>
+                    @else
+                        {{-- Standard navigation for other roles --}}
+                        <a href="/dashboard" class="{{ request()->is('dashboard') ? 'active' : '' }}">Dashboard</a>
+                        <a href="/patients" class="{{ request()->is('patients') ? 'active' : '' }}">Patients</a>
+                        <a href="/medgemma" class="{{ request()->is('medgemma') ? 'active' : '' }}">AI Analysis</a>
+                        <a href="/reports" class="{{ request()->is('reports') ? 'active' : '' }}">Reports</a>
+                        <a href="/dicom-upload" class="{{ request()->is('dicom-upload') ? 'active' : '' }}">DICOM Upload</a>
+                        <a href="{{ route('financial.doctor-dashboard') }}" class="{{ request()->is('financial/*') ? 'active' : '' }}">Financial</a>
+                    @endif
+                @else
+                    {{-- Guest navigation --}}
+                    <a href="/dashboard">Dashboard</a>
+                    <a href="/patients">Patients</a>
+                    <a href="/medgemma">AI Analysis</a>
+                    <a href="/reports">Reports</a>
+                    <a href="/dicom-upload">DICOM Upload</a>
                 @endauth
             </nav>
             
@@ -321,6 +382,100 @@
         
         // Refresh CSRF token every 4 minutes
         setInterval(refreshCSRFToken, 4 * 60 * 1000);
+        
+        // Handle lab tech navigation hash links
+        @auth
+            @if(\App\Helpers\RoleHelper::isLabTechnician(Auth::user()))
+                // Handle navigation for lab tech dashboard tabs
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Enhanced navigation for main nav bar lab links
+                    const labNavLinks = document.querySelectorAll('.custom-nav-tab');
+                    
+                    // Function to update active states in main navigation
+                    function updateMainNavActiveStates(activeTarget) {
+                        labNavLinks.forEach(link => {
+                            const target = link.getAttribute('data-target') || link.getAttribute('data-bs-target')?.replace('#', '');
+                            if (target === activeTarget) {
+                                link.classList.add('active');
+                            } else {
+                                link.classList.remove('active');
+                            }
+                        });
+                    }
+                    
+                    // Function to show/hide tab content
+                    function showTabContent(targetId) {
+                        // Hide all tab panes first
+                        document.querySelectorAll('.tab-pane').forEach(pane => {
+                            pane.classList.remove('show', 'active');
+                            pane.style.display = 'none';
+                        });
+                        
+                        // Show target pane
+                        const targetPane = document.getElementById(targetId);
+                        if (targetPane) {
+                            targetPane.style.display = 'block';
+                            targetPane.classList.add('show', 'active', 'fade-in');
+                            
+                            // Trigger any load functions for the tab
+                            if (targetId === 'equipment') {
+                                if (typeof loadEquipmentData === 'function') loadEquipmentData();
+                            } else if (targetId === 'invoices') {
+                                if (typeof loadLabInvoices === 'function') loadLabInvoices();
+                            } else if (targetId === 'analytics') {
+                                if (typeof loadAnalytics === 'function') loadAnalytics();
+                            } else if (targetId === 'orders') {
+                                if (typeof loadLabOrders === 'function') loadLabOrders();
+                            }
+                        }
+                    }
+                    
+                    // Handle main navigation clicks
+                    labNavLinks.forEach(link => {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const target = this.getAttribute('data-target') || this.getAttribute('data-bs-target')?.replace('#', '');
+                            
+                            // Update URL if needed
+                            if (target && target !== 'orders') {
+                                history.pushState(null, '', '/lab-tech#' + target);
+                            } else {
+                                history.pushState(null, '', '/lab-tech');
+                            }
+                            
+                            // Update active states and show content
+                            updateMainNavActiveStates(target);
+                            showTabContent(target);
+                        });
+                    });
+                    
+                    // Handle hash navigation on page load and hash change
+                    function handleHashNavigation() {
+                        const hash = window.location.hash.replace('#', '') || 'orders';
+                        updateMainNavActiveStates(hash);
+                        showTabContent(hash);
+                    }
+                    
+                    // Check if we're on the lab tech dashboard and handle hash navigation
+                    if (window.location.pathname === '/lab-tech') {
+                        // Force proper initialization - hide all tabs first
+                        document.querySelectorAll('.tab-pane').forEach(pane => {
+                            pane.classList.remove('show', 'active');
+                            pane.style.display = 'none';
+                        });
+                        
+                        // Then show the correct tab
+                        handleHashNavigation();
+                        
+                        // Listen for hash changes
+                        window.addEventListener('hashchange', handleHashNavigation);
+                    } else if (window.location.pathname === '/dashboard') {
+                        // If on regular dashboard, make sure orders tab is active for lab techs
+                        updateMainNavActiveStates('orders');
+                    }
+                });
+            @endif
+        @endauth
     </script>
     
     @yield('scripts')

@@ -64,57 +64,6 @@
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.nav-tabs-container {
-    background: var(--glass-background);
-    backdrop-filter: var(--backdrop-blur);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-xl);
-    padding: 1rem;
-    margin-bottom: 2rem;
-    box-shadow: var(--shadow-md);
-}
-
-.custom-nav-tabs {
-    display: flex;
-    gap: 0.5rem;
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0;
-}
-
-.custom-nav-tab {
-    background: transparent;
-    border: 1px solid var(--glass-border);
-    color: var(--text-secondary);
-    padding: 1rem 1.5rem;
-    border-radius: var(--radius-lg);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex: 1;
-    justify-content: center;
-    cursor: pointer;
-}
-
-.custom-nav-tab:hover {
-    background: var(--glass-background-hover);
-    border-color: var(--glass-border-hover);
-    color: var(--text-primary);
-    transform: translateY(-2px);
-}
-
-.custom-nav-tab.active {
-    background: var(--primary-gradient);
-    border-color: transparent;
-    color: white;
-    box-shadow: var(--shadow-sm);
-}
-
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -414,10 +363,6 @@
         gap: 1rem;
     }
     
-    .custom-nav-tabs {
-        flex-direction: column;
-    }
-    
     .content-card-header {
         padding: 1rem;
         flex-direction: column;
@@ -674,6 +619,111 @@
     transform: scale(1.02);
 }
 
+/* Enhanced Invoice Form Styles */
+.search-section {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.search-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.search-section:hover::before {
+    left: 100%;
+}
+
+.search-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+}
+
+.form-section {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-section:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.pricing-section {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.pricing-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(251, 191, 36, 0.2);
+}
+
+/* Enhanced Input Groups */
+.input-group:hover {
+    transform: translateY(-1px);
+    transition: transform 0.2s ease;
+}
+
+.input-group .form-control:focus {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: scale(1.01);
+    transition: all 0.3s ease;
+}
+
+/* Enhanced Buttons */
+.btn:hover {
+    transform: translateY(-2px) !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
+}
+
+.btn-secondary:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Pulse animation for final amount */
+@keyframes amount-pulse {
+    0%, 100% { 
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+    50% { 
+        transform: scale(1.04);
+        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.3);
+    }
+}
+
+#labInvoiceAmount:not(:placeholder-shown) {
+    animation: amount-pulse 2s infinite;
+}
+
+/* Form labels enhancement */
+.form-label {
+    transition: color 0.3s ease;
+}
+
+.form-label:hover {
+    color: var(--text-primary) !important;
+}
+
+/* Select enhancement */
+select.form-control:focus {
+    border-color: rgba(102, 126, 234, 0.5) !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
 /* Enhanced Action Card Effects */
 .action-card:hover .fas.fa-arrow-right {
     transform: translateX(5px);
@@ -707,48 +757,21 @@
 </style>
 
 <script>
-// Custom Tab Functionality
-function initializeTabs() {
-    const tabs = document.querySelectorAll('.custom-nav-tab');
-    const tabPanes = document.querySelectorAll('.tab-pane');
-    
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            // Remove active class from all tabs and panes
-            tabs.forEach(t => t.classList.remove('active'));
-            tabPanes.forEach(pane => {
-                pane.classList.remove('show', 'active');
-                pane.style.display = 'none';
-            });
-            
-            // Add active class to clicked tab
-            this.classList.add('active');
-            
-            // Show corresponding pane
-            const targetId = this.getAttribute('data-bs-target');
-            const targetPane = document.querySelector(targetId);
-            if (targetPane) {
-                targetPane.style.display = 'block';
-                targetPane.classList.add('show', 'active', 'fade-in');
-                
-                // Trigger any load functions for the tab
-                const tabId = targetId.replace('#', '');
-                if (tabId === 'equipment') {
-                    loadEquipmentData();
-                } else if (tabId === 'invoices') {
-                    loadLabInvoices();
-                } else if (tabId === 'analytics') {
-                    loadAnalytics();
-                }
-            }
-        });
-    });
-}
-
-// Initialize tabs when document is ready
+// Initialize page when document is ready
 document.addEventListener('DOMContentLoaded', function() {
-    initializeTabs();
     initializeDragAndDrop();
+    
+    // Load initial data based on current hash
+    const hash = window.location.hash.replace('#', '') || 'orders';
+    if (hash === 'equipment' && typeof loadEquipmentData === 'function') {
+        loadEquipmentData();
+    } else if (hash === 'invoices' && typeof loadLabInvoices === 'function') {
+        loadLabInvoices();
+    } else if (hash === 'analytics' && typeof loadAnalytics === 'function') {
+        loadAnalytics();
+    } else if (hash === 'orders' && typeof loadLabOrders === 'function') {
+        loadLabOrders();
+    }
 });
 
 // Collection Modal Functions
@@ -1696,24 +1719,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <div class="dashboard-container">
-    <!-- Navigation Tabs -->
-    <div class="nav-tabs-container">
-        <div class="custom-nav-tabs" id="labTechTabs" role="tablist">
-            <button class="custom-nav-tab active" id="orders-tab" data-bs-toggle="pill" data-bs-target="#orders" type="button" role="tab">
-                <i class="fas fa-vials"></i>Dashboard
-            </button>
-            <button class="custom-nav-tab" id="equipment-tab" data-bs-toggle="pill" data-bs-target="#equipment" type="button" role="tab">
-                <i class="fas fa-microscope"></i>Sampling & Results
-            </button>
-            <button class="custom-nav-tab" id="invoices-tab" data-bs-toggle="pill" data-bs-target="#invoices" type="button" role="tab">
-                <i class="fas fa-flask"></i>Lab Financials
-            </button>
-            <button class="custom-nav-tab" id="analytics-tab" data-bs-toggle="pill" data-bs-target="#analytics" type="button" role="tab">
-                <i class="fas fa-chart-line"></i>Configuration
-            </button>
-        </div>
-    </div>
-
     <!-- Tab Content -->
     <div class="tab-content" id="labTechTabContent">
         
@@ -2103,7 +2108,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
 
         <!-- Equipment & Results Tab -->
-        <div class="tab-pane fade" id="equipment" role="tabpanel">
+        <div class="tab-pane fade" id="equipment" role="tabpanel" style="display: none;">
             <!-- Interactive Action Cards - Side by Side -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
                 <!-- Record Sample Collection Card -->
@@ -2425,104 +2430,53 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Create invoices for completed lab orders with patient search</p>
                 </div>
                 <div class="content-card-body">
-                    <!-- Patient Search Section -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label">
-                                <i class="fas fa-search me-1"></i>Search Patient
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                                <input type="text" id="patientSearchInput" class="form-control" placeholder="Search by name or CNIC..." onkeyup="searchPatientsForInvoice(this.value)">
-                            </div>
-                            <small class="text-muted">Type patient name or CNIC to search</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">
-                                <i class="fas fa-id-card me-1"></i>CNIC Search
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-hashtag"></i>
-                                </span>
-                                <input type="text" id="cnicSearchForInvoice" class="form-control" placeholder="12345-1234567-1" onkeyup="searchPatientsByCnicForInvoice(this.value)">
-                                <button class="btn btn-outline-secondary" type="button" onclick="searchPatientsByCnicForInvoice(document.getElementById('cnicSearchForInvoice').value, false)">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                            <small class="text-muted">Enter CNIC for exact search</small>
-                        </div>
-                    </div>
-
-                    <!-- Invoice Form -->
+                    <!-- Original Generate Invoice Section -->
                     <form id="labInvoiceForm">
-                        <div class="row g-3">
+                        <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">
-                                    <i class="fas fa-user-circle me-1"></i>Selected Patient *
-                                </label>
+                                <label class="form-label">Patient Name</label>
+                                <input type="text" id="patientSearchInput" class="form-control" placeholder="Search by name..." onkeyup="searchPatientsForInvoice(this.value)">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">CNIC</label>
+                                <input type="text" id="cnicSearchForInvoice" class="form-control" placeholder="12345-1234567-1" onkeyup="searchPatientsByCnicForInvoice(this.value)">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Select Patient *</label>
                                 <select id="labInvoicePatient" class="form-control" required onchange="loadPatientLabOrders()">
                                     <option value="">Choose patient...</option>
                                 </select>
-                                <div id="patientInfoDisplay" class="mt-2" style="display: none;">
-                                    <div class="alert alert-info" style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); color: var(--text-primary);">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="fas fa-info-circle" style="color: #06b6d4;"></i>
-                                            <div id="selectedPatientInfo"></div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">
-                                    <i class="fas fa-flask me-1"></i>Completed Lab Orders *
-                                </label>
+                                <label class="form-label">Lab Orders *</label>
                                 <select id="labInvoiceOrders" class="form-control" multiple required onchange="calculateLabInvoiceAmount()">
                                     <option value="">Select patient first...</option>
                                 </select>
                                 <small class="text-muted">Hold Ctrl/Cmd to select multiple completed orders</small>
                             </div>
                         </div>
-
-                        <div class="row g-3 mt-3">
+                        <div class="row mb-3">
                             <div class="col-md-4">
-                                <label class="form-label">
-                                    <i class="fas fa-calculator me-1"></i>Subtotal
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" id="labInvoiceSubtotal" class="form-control" step="0.01" readonly>
-                                </div>
+                                <label class="form-label">Subtotal</label>
+                                <input type="number" id="labInvoiceSubtotal" class="form-control" step="0.01" readonly>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">
-                                    <i class="fas fa-percentage me-1"></i>Discount (%)
-                                </label>
+                                <label class="form-label">Discount (%)</label>
                                 <input type="number" id="labDiscount" class="form-control" min="0" max="100" value="0" onchange="calculateLabInvoiceAmount()">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">
-                                    <i class="fas fa-dollar-sign me-1"></i>Final Amount
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" id="labInvoiceAmount" class="form-control" step="0.01" required readonly style="font-weight: 600; color: #10b981;">
-                                </div>
+                                <label class="form-label">Final Amount</label>
+                                <input type="number" id="labInvoiceAmount" class="form-control" step="0.01" required readonly>
                             </div>
                         </div>
-
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="d-flex gap-2 justify-content-end">
-                                    <button type="button" class="btn btn-secondary" onclick="clearInvoiceForm()">
-                                        <i class="fas fa-times me-1"></i>Clear Form
-                                    </button>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-file-invoice me-1"></i>Generate Invoice
-                                    </button>
-                                </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-secondary w-100" onclick="clearInvoiceForm()">Clear Form</button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary w-100">Generate Invoice</button>
                             </div>
                         </div>
                     </form>
@@ -3047,76 +3001,6 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Analytics Tab -->
-        <div class="tab-pane fade" id="analytics" role="tabpanel">
-            <div class="row g-4">
-                <div class="col-lg-6">
-                    <div class="glass-card">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-chart-pie me-2"></i>
-                                Test Distribution
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="testDistributionChart" height="300"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="glass-card">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-chart-line me-2"></i>
-                                Daily Revenue
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="revenueChart" height="300"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12">
-                    <div class="glass-card">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-stopwatch me-2"></i>
-                                Performance Metrics
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-3">
-                                    <div class="metric-item">
-                                        <h4 id="avgProcessingTime">-- min</h4>
-                                        <p>Avg Processing Time</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="metric-item">
-                                        <h4 id="todayCompletionRate">-- %</h4>
-                                        <p>Today's Completion Rate</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="metric-item">
-                                        <h4 id="criticalResults">--</h4>
-                                        <p>Critical Results</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="metric-item">
-                                        <h4 id="qualityScore">-- %</h4>
-                                        <p>Quality Score</p>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

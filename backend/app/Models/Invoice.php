@@ -18,6 +18,10 @@ class Invoice extends Model
         'doctor_id',
         'service_type',
         'amount',
+        'doctor_share',
+        'owner_share',
+        'doctor_percentage',
+        'issuer_role',
         'status',
         'description',
         'email_sent_to',
@@ -36,6 +40,9 @@ class Invoice extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'doctor_share' => 'decimal:2',
+        'owner_share' => 'decimal:2',
+        'doctor_percentage' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'amount_received' => 'decimal:2',
         'email_sent_at' => 'datetime',
@@ -60,6 +67,28 @@ class Invoice extends Model
             
             if (!$invoice->due_date) {
                 $invoice->due_date = Carbon::now()->addDays(30);
+            }
+            
+            // Auto-calculate revenue split
+            if ($invoice->doctor_id && $invoice->amount) {
+                $doctor = User::find($invoice->doctor_id);
+                if ($doctor && $doctor->revenue_share) {
+                    $invoice->doctor_percentage = $doctor->revenue_share;
+                    $invoice->doctor_share = ($invoice->amount * $doctor->revenue_share) / 100;
+                    $invoice->owner_share = $invoice->amount - $invoice->doctor_share;
+                }
+            }
+        });
+        
+        static::updating(function ($invoice) {
+            // Recalculate revenue split if amount or doctor changes
+            if ($invoice->isDirty(['amount', 'doctor_id']) && $invoice->doctor_id && $invoice->amount) {
+                $doctor = User::find($invoice->doctor_id);
+                if ($doctor && $doctor->revenue_share) {
+                    $invoice->doctor_percentage = $doctor->revenue_share;
+                    $invoice->doctor_share = ($invoice->amount * $doctor->revenue_share) / 100;
+                    $invoice->owner_share = $invoice->amount - $invoice->doctor_share;
+                }
             }
         });
     }

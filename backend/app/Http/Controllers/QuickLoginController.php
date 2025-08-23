@@ -13,7 +13,7 @@ class QuickLoginController extends Controller
         $admin = User::where('email', 'admin@medgemma.com')->first();
         if ($admin) {
             Auth::login($admin);
-            return redirect()->route('financial.admin-dashboard');
+            return redirect('/dashboard'); // Fixed: redirect to main dashboard
         }
         return redirect('/login')->with('error', 'Admin user not found');
     }
@@ -23,7 +23,7 @@ class QuickLoginController extends Controller
         $doctor = User::where('email', 'doctor1@medgemma.com')->first();
         if ($doctor) {
             Auth::login($doctor);
-            return redirect()->route('financial.doctor-dashboard');
+            return redirect('/patients'); // Fixed: redirect to patients page for doctors
         }
         return redirect('/login')->with('error', 'Doctor user not found');
     }
@@ -46,6 +46,16 @@ class QuickLoginController extends Controller
             return redirect()->route('lab-tech.dashboard');
         }
         return redirect('/login')->with('error', 'Lab Technician user not found');
+    }
+    
+    public function loginAsOwner()
+    {
+        $owner = User::where('email', 'owner@medgemma.com')->first();
+        if ($owner) {
+            Auth::login($owner);
+            return redirect('/dashboard'); // Owner sees owner-dashboard through dashboard route
+        }
+        return redirect('/login')->with('error', 'Owner user not found');
     }
     
     public function showQuickLogin()

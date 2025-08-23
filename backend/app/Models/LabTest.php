@@ -11,12 +11,24 @@ class LabTest extends Model
     use HasFactory;
 
     protected $fillable = [
-        'code','name','normal_range_low','normal_range_high','units','specimen_type'
+        'code',
+        'name', 
+        'category',
+        'normal_range',
+        'normal_range_low',
+        'normal_range_high',
+        'unit',
+        'units',
+        'specimen_type',
+        'price',
+        'is_active'
     ];
 
     protected $casts = [
         'normal_range_low' => 'float',
         'normal_range_high' => 'float',
+        'price' => 'decimal:2',
+        'is_active' => 'boolean',
     ];
 
     public function orders(): HasMany

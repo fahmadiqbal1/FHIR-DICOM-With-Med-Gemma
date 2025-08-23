@@ -1,0 +1,10 @@
+PHPUnit 11.5.28 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.4.11
+Configuration: /Users/fahmadiqbal/FHIR-DICOM-With-Med-Gemma/backend/phpunit.xml
+
+......                                                              6 / 6 (100%)
+
+Time: 00:00.343, Memory: 46.50 MB
+
+OK (6 tests, 23 assertions)

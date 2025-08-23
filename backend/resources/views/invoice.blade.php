@@ -28,17 +28,24 @@
     }
     .invoice-content {
         padding: 2rem;
+        background: white;
+        color: #333;
     }
     .invoice-details {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 2rem;
         margin-bottom: 2rem;
+        color: #333;
     }
     .detail-section h3 {
         color: #667eea;
         margin-bottom: 1rem;
         font-size: 1.2rem;
+    }
+    .detail-section p {
+        color: #333;
+        margin-bottom: 0.5rem;
     }
     .invoice-table {
         width: 100%;
@@ -57,12 +64,14 @@
     .invoice-table td {
         padding: 1rem;
         border-bottom: 1px solid #eee;
+        color: #333;
     }
     .total-section {
         text-align: right;
         margin-top: 2rem;
         padding-top: 1rem;
         border-top: 2px solid #667eea;
+        color: #333;
     }
     .total-amount {
         font-size: 1.5rem;

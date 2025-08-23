@@ -51,7 +51,7 @@ class FinancialDashboardController extends Controller
         // Generate recent consultations demo data
         $recentConsultations = $this->generateRecentConsultations($date, $checkupFee, $revenuePercentage);
         
-        return view('financial.doctor-dashboard-clean', compact(
+        return view('doctor-financial-dashboard', compact(
             'todayEarnings',
             'todayConsultations',
             'todayPatients',
@@ -224,7 +224,7 @@ class FinancialDashboardController extends Controller
             ->limit(10)
             ->get();
         
-        return view('financial.admin-dashboard', compact(
+        return redirect('/dashboard')->with('financial_data', compact(
             'totalRevenue',
             'totalDoctorEarnings',
             'totalExpenses',

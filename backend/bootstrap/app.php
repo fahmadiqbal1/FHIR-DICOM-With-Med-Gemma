@@ -20,10 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\Role::class,
             'radiologist' => \App\Http\Middleware\RadiologistMiddleware::class,
             'session.timeout' => \App\Http\Middleware\CheckSessionTimeout::class,
+            'user.active' => \App\Http\Middleware\CheckUserActive::class,
         ]);
         $middleware->append(AuditLogMiddleware::class);
         $middleware->web(append: [
             \App\Http\Middleware\CheckSessionTimeout::class,
+            \App\Http\Middleware\CheckUserActive::class,
         ]);
         // Disable CSRF for API routes
         $middleware->validateCsrfTokens(except: [

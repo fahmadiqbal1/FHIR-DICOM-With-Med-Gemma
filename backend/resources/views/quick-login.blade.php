@@ -114,6 +114,17 @@
         </div>
 
         <div class="login-option">
+            <h3>👑 Business Owner Dashboard</h3>
+            <ul class="feature-list">
+                <li>✅ Complete business analytics</li>
+                <li>✅ Revenue by department</li>
+                <li>✅ Owner profit tracking</li>
+                <li>✅ Performance management</li>
+            </ul>
+            <a href="/quick-login/owner" class="login-btn">Login as Owner</a>
+        </div>
+
+        <div class="login-option">
             <h3>🩻 Radiologist Dashboard</h3>
             <ul class="feature-list">
                 <li>✅ Imaging study analysis</li>
@@ -124,15 +135,26 @@
             <a href="/quick-login/radiologist" class="login-btn">Login as Radiologist</a>
         </div>
 
-        <div class="login-option">
-            <h3>🧪 Lab Technician Dashboard</h3>
+                <div class="login-option">
+            <h3>🧪 Lab Tech Dashboard</h3>
             <ul class="feature-list">
-                <li>✅ Lab order management</li>
-                <li>✅ Sample collection tracking</li>
-                <li>✅ Result submission workflow</li>
-                <li>✅ Priority-based task organization</li>
+                <li>✅ Sample processing queue</li>
+                <li>✅ Equipment monitoring</li>
+                <li>✅ Test results management</li>
+                <li>✅ Quality control workflows</li>
             </ul>
-            <a href="/quick-login/lab-tech" class="login-btn">Login as Lab Tech</a>
+            <a href="/login?quick=labtech@medgemma.com" class="login-btn">Login as Lab Tech</a>
+        </div>
+
+        <div class="login-option">
+            <h3>💊 Pharmacist Dashboard</h3>
+            <ul class="feature-list">
+                <li>✅ Prescription processing</li>
+                <li>✅ Inventory management</li>
+                <li>✅ Revenue tracking</li>
+                <li>✅ Supply chain monitoring</li>
+            </ul>
+            <a href="/pharmacist-dashboard" class="login-btn">Login as Pharmacist</a>
         </div>
 
         <div class="note">
@@ -145,6 +167,7 @@
             <strong>🔑 Manual Login Credentials:</strong><br>
             <div style="text-align: left; margin-top: 10px; font-family: monospace; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 5px;">
             <strong>Admin:</strong> admin@medgemma.com / admin123<br>
+            <strong>Owner:</strong> owner@medgemma.com / owner123<br>
             <strong>Doctor 1:</strong> doctor1@medgemma.com / doctor123<br>
             <strong>Doctor 2:</strong> doctor2@medgemma.com / doctor123<br>
             <strong>Radiologist:</strong> radiologist@medgemma.com / radiologist123<br>

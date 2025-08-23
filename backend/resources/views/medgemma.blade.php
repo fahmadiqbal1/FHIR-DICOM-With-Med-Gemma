@@ -552,7 +552,11 @@
                 <a href="/help">Help</a>
             </nav>
             <div class="user-info">
-                <span>Dr. {{ Auth::user()->name ?? 'Admin' }}</span>
+                <span>Dr. {{ 
+                    (Auth::user()->name && strlen(Auth::user()->name) < 50 && !str_contains(Auth::user()->name, 'eyJ')) 
+                        ? Auth::user()->name 
+                        : ucfirst(str_replace(['.', '_', '-'], ' ', explode('@', Auth::user()->email ?? 'Doctor')[0])) 
+                }}</span>
                 <a href="/logout" class="logout-btn">Logout</a>
             </div>
         </div>

@@ -29,6 +29,27 @@
             padding: 1.5rem 0 1rem 0;
             box-shadow: 0 2px 10px rgba(102,126,234,0.08);
         }
+        
+        /* Fix dropdown z-index issues */
+        .dropdown-menu, .dropdown {
+            z-index: 9999 !important;
+            position: relative !important;
+        }
+        
+        .dropdown-menu {
+            background: white !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .dropdown-item {
+            color: #333 !important;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa !important;
+            color: #333 !important;
+        }
         .header-container {
             max-width: 1200px;
             margin: 0 auto;

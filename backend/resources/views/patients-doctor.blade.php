@@ -15,7 +15,7 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2E8B57 0%, #3CB371 100%);
             min-height: 100vh;
             color: white;
             overflow-x: hidden;
@@ -156,13 +156,15 @@
             border-radius: 20px;
             padding: 2rem;
             box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
         
         .card:hover {
             transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         
         .card h2, .card h3 {
@@ -171,14 +173,18 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            font-weight: 600;
+            font-size: 1.25rem;
         }
         
         /* Patient Search */
         .search-section {
             background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
             border-radius: 15px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .search-row {
@@ -198,12 +204,14 @@
             padding: 0.75rem 1rem;
             font-size: 0.95rem;
             backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
         }
         
         .search-input:focus {
             outline: none;
             border-color: rgba(255, 255, 255, 0.6);
             background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
         }
         
         .search-input::placeholder {
@@ -216,7 +224,9 @@
             overflow-y: auto;
             border-radius: 15px;
             background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
             padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .patient-list::-webkit-scrollbar {
@@ -239,6 +249,8 @@
             align-items: center;
             padding: 1rem;
             background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             margin-bottom: 1rem;
             transition: all 0.3s ease;
@@ -248,6 +260,7 @@
         .patient-item:hover {
             background: rgba(255, 255, 255, 0.1);
             transform: translateX(5px);
+            border-color: rgba(255, 255, 255, 0.2);
         }
         
         .patient-item.selected {
@@ -398,13 +411,13 @@
         }
         
         .btn.primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(45deg, #2E8B57, #3CB371);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .btn.primary:hover {
-            background: linear-gradient(45deg, #5a67d8, #6b46c1);
+            background: linear-gradient(45deg, #228B22, #3CB371);
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
@@ -652,7 +665,11 @@
                 <a href="/medgemma">AI Analysis</a>
             </nav>
             <div class="user-info">
-                <span>Dr. {{ Auth::user()->name ?? 'John Smith' }}</span>
+                <span>Dr. {{ 
+                    (Auth::user()->name && strlen(Auth::user()->name) < 50 && !str_contains(Auth::user()->name, 'eyJ')) 
+                        ? Auth::user()->name 
+                        : ucfirst(str_replace(['.', '_', '-'], ' ', explode('@', Auth::user()->email ?? 'Doctor')[0])) 
+                }}</span>
                 <a href="/dashboard" class="back-btn">← Back</a>
             </div>
         </div>
@@ -995,8 +1012,8 @@
             container.innerHTML = notes.map(note => `
                 <div class="note-item">
                     <div class="note-header">
-                        <strong style="color: white;">${htmlesc(note.provider ? note.provider.name : 'Dr. Unknown')}</strong>
-                        <span class="note-date">${new Date(note.created_at).toLocaleString()}</span>
+                        <strong style="color: white;">${htmlesc(note.provider ? note.provider.name : 'Unknown Provider')}</strong>
+                        <span class="note-date">${note.formatted_date || new Date(note.created_at).toLocaleString()}</span>
                     </div>
                     <div class="note-content">${htmlesc(note.content)}</div>
                 </div>

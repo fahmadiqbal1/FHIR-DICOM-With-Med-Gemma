@@ -38,26 +38,18 @@ class InvoiceController extends Controller
             'amount' => $request->amount,
             'description' => $request->description,
             'status' => 'pending',
-            'email_sent_to' => 'invoices@avivahealthcare.org'
+            'email_sent_to' => null // Don't auto-assign email
         ]);
 
-        // Load relationships for email
+        // Load relationships
         $invoice->load(['patient', 'doctor']);
 
-        // Send automatic email notification to invoices@avivahealthcare.org
-        try {
-            Mail::send(new InvoiceMail($invoice));
-            $invoice->update(['email_sent_at' => now()]);
-            Log::info('Invoice email sent successfully', ['invoice_id' => $invoice->id]);
-        } catch (\Exception $e) {
-            // Email failed but invoice was created
-            Log::error('Failed to send invoice email: ' . $e->getMessage(), ['invoice_id' => $invoice->id]);
-        }
+        // Don't send automatic email - let user preview first
 
         return response()->json([
-            'message' => 'Invoice created successfully and sent to invoices@avivahealthcare.org',
+            'message' => 'Invoice created successfully',
             'invoice' => $invoice,
-            'view_url' => route('invoices.view', $invoice->id)
+            'view_url' => route('admin.invoices.view', $invoice->id)
         ], 201);
     }
 

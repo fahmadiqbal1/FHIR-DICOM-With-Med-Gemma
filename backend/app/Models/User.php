@@ -8,6 +8,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Invoice;
+use App\Models\DoctorEarning;
+use App\Models\DoctorAncillaryEarning;
+use App\Models\Expense;
+use App\Models\Salary;
 
 class User extends Authenticatable
 {
@@ -24,6 +29,11 @@ class User extends Authenticatable
         'email',
         'password',
         'revenue_share',
+        'is_active_doctor',
+        'role',
+        'lab_revenue_percentage',
+        'radiology_revenue_percentage',
+        'pharmacy_revenue_percentage',
     ];
 
     /**
@@ -53,25 +63,45 @@ class User extends Authenticatable
         'name'
     ];
 
-    public function setAttribute($key, $value)
-    {
-        if (in_array($key, $this->encryptable)) {
-            $value = encrypt($value);
-        }
-        return parent::setAttribute($key, $value);
-    }
-
     public function getAttribute($key)
     {
         $value = parent::getAttribute($key);
         if (in_array($key, $this->encryptable) && $value !== null) {
             try {
-                return decrypt($value);
+                // Check if value is already decrypted or corrupted
+                if (strlen($value) > 200 || str_contains($value, 'eyJ')) {
+                    // Value seems to be encrypted, try to decrypt
+                    $decrypted = decrypt($value);
+                    // Check if decryption result is still encrypted (double encryption)
+                    if (str_contains($decrypted, 'eyJ')) {
+                        $decrypted = decrypt($decrypted);
+                    }
+                    return $decrypted;
+                } else {
+                    // Value seems normal, return as is
+                    return $value;
+                }
             } catch (\Exception $e) {
-                return $value;
+                // If decryption fails, check if it's a reasonable name length
+                if (strlen($value) < 100 && !str_contains($value, 'eyJ')) {
+                    return $value; // Probably already decrypted
+                }
+                // For corrupted data, return a fallback
+                return 'User ' . ($this->id ?? 'Unknown');
             }
         }
         return $value;
+    }
+    
+    public function setAttribute($key, $value)
+    {
+        if (in_array($key, $this->encryptable)) {
+            // Only encrypt if the value is not already encrypted
+            if (!str_contains($value, 'eyJ') && strlen($value) < 100) {
+                $value = encrypt($value);
+            }
+        }
+        return parent::setAttribute($key, $value);
     }
 
     protected static function booted()
@@ -109,5 +139,30 @@ class User extends Authenticatable
                 'details' => $user->toArray(),
             ]);
         });
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class, 'doctor_id');
+    }
+
+    public function doctorEarnings()
+    {
+        return $this->hasMany(DoctorEarning::class, 'doctor_id');
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'created_by');
+    }
+
+    public function salaries()
+    {
+        return $this->hasMany(Salary::class, 'staff_id');
+    }
+
+    public function doctorAncillaryEarnings()
+    {
+        return $this->hasMany(DoctorAncillaryEarning::class, 'doctor_id');
     }
 }

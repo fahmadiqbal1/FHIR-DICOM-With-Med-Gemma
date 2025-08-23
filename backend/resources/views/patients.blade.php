@@ -31,6 +31,27 @@
             z-index: 100;
         }
         
+        /* Fix dropdown z-index issues for any potential dropdowns */
+        .dropdown-menu, .dropdown {
+            z-index: 9999 !important;
+            position: relative !important;
+        }
+        
+        .dropdown-menu {
+            background: white !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .dropdown-item {
+            color: #333 !important;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa !important;
+            color: #333 !important;
+        }
+        
         .inner {
             max-width: 1200px;
             margin: 0 auto;
@@ -148,6 +169,81 @@
         
         .muted {
             color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Quick Actions Section */
+        .quick-actions-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .quick-actions-section h2 {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .quick-action-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .quick-action-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-icon {
+            font-size: 2rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .action-content h3 {
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .action-content p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
         }
         
         .grid {
@@ -438,6 +534,157 @@
             background: #2d3748;
             color: #fff;
         }
+
+        /* Drag and Drop Styles */
+        .drag-drop-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .drag-drop-box {
+            min-height: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f9fafb;
+            transition: all 0.3s ease;
+        }
+
+        .drag-drop-box.drag-over {
+            border-color: #4f46e5;
+            background: #f0f7ff;
+        }
+
+        .available-box {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .selected-box {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .test-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: grab;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .test-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .test-item.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .test-item.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .test-item.selected .remove-btn {
+            opacity: 1;
+        }
+
+        .test-name {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .test-code {
+            font-size: 0.8em;
+            color: #6b7280;
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+
+        .test-cost {
+            float: right;
+            font-weight: 600;
+            color: #059669;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .remove-btn:hover {
+            background: #dc2626;
+        }
+
+        .selected-tests-container .test-item {
+            position: relative;
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 30px;
+            color: #9ca3af;
+        }
+
+        .loading-indicator {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+
+        .order-summary {
+            font-size: 0.9em;
+            color: #6b7280;
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-group .btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+
+        .order-interface {
+            display: none;
+        }
+
+        .order-interface.active {
+            display: block;
+        }
         
         .form-actions {
             display: flex;
@@ -676,13 +923,79 @@
     </style>
 </head>
 <body>
-    @include('partials.header')
-    
-    <div class="container">
-    <div class="page-header" style="margin-bottom: 20px;">
-        <h1>Patient Management</h1>
-        <p class="muted">Comprehensive patient records and clinical data management</p>
+    <!-- Professional Healthcare Header -->
+    <div class="app-header">
+        <div class="inner">
+            <div class="logo">
+                <div class="mark">🩺</div>
+                <span>Doctor Dashboard - MedGemma</span>
+            </div>
+            <div class="user-info">
+                <span class="user-name">{{ auth()->user()->name ?? 'Doctor' }}</span>
+                <form method="POST" action="/logout" style="display: inline;">
+                    @csrf
+                    <button type="submit" class="btn outline small">
+                        🚪 Sign Out
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
+
+    <div class="container">
+        <!-- Quick Actions Section -->
+        <div class="quick-actions-section">
+            <h2>🚀 Quick Actions</h2>
+            <div class="quick-actions-grid">
+                <div class="quick-action-card" onclick="showCreatePatientModal()">
+                    <div class="action-icon">👤➕</div>
+                    <div class="action-content">
+                        <h3>Add Patient</h3>
+                        <p>Register new patient</p>
+                    </div>
+                </div>
+                <div class="quick-action-card" onclick="showInvoiceModal()">
+                    <div class="action-icon">💰</div>
+                    <div class="action-content">
+                        <h3>Generate Invoice</h3>
+                        <p>Create billing invoice</p>
+                    </div>
+                </div>
+                <div class="quick-action-card" onclick="loadPatients()">
+                    <div class="action-icon">🔄</div>
+                    <div class="action-content">
+                        <h3>Refresh Data</h3>
+                        <p>Update patient list</p>
+                    </div>
+                </div>
+                <div class="quick-action-card" onclick="window.location.href='/doctor/ai-analysis'">
+                    <div class="action-icon">🤖</div>
+                    <div class="action-content">
+                        <h3>AI Analysis</h3>
+                        <p>Medical AI assistant</p>
+                    </div>
+                </div>
+                <div class="quick-action-card" onclick="window.location.href='/financial/doctor-dashboard'">
+                    <div class="action-icon">📊</div>
+                    <div class="action-content">
+                        <h3>Financial Dashboard</h3>
+                        <p>Revenue & Analytics</p>
+                    </div>
+                </div>
+                <div class="quick-action-card" onclick="window.location.href='/dicom-upload'">
+                    <div class="action-icon">📁</div>
+                    <div class="action-content">
+                        <h3>DICOM Upload</h3>
+                        <p>Medical imaging</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-header" style="margin-bottom: 20px;">
+            <h1>Patient Management</h1>
+            <p class="muted">Comprehensive patient records and clinical data management</p>
+        </div>
 
     <!-- Alert container -->
     <div id="alert-container" style="margin-bottom: 20px;"></div>
@@ -719,7 +1032,8 @@
                 <div id="patientDetailsMeta" class="muted">Select a patient to view comprehensive details.</div>
                 <div id="patientDetailsActions" class="row" style="margin:10px 0; display:none">
                     <button class="btn outline" onclick="editPatient(currentPatientId)">Edit Patient</button>
-                    <button class="btn primary" onclick="analyzeLabs(currentPatientId)">Analyze Labs</button>
+                    <button class="btn primary" onclick="openNewOrderModal()">New Order</button>
+                    <button class="btn secondary" onclick="analyzeLabs(currentPatientId)">Analyze Labs</button>
                     <button class="btn ghost" onclick="secondOpinion(currentPatientId)">Combined Second Opinion</button>
                 </div>
             </div>
@@ -770,6 +1084,93 @@
         </div>
         <div class="modal-body" id="rxModalBody">
             Loading...
+        </div>
+    </div>
+</div>
+
+<!-- New Order Modal -->
+<div id="newOrderModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3 class="modal-title">New Order</h3>
+            <button class="modal-close" onclick="closeModal('newOrderModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <!-- Order Type Selection -->
+            <div class="order-type-selector" style="margin-bottom: 20px;">
+                <h4>Select Order Type:</h4>
+                <div class="btn-group" style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="btn primary" id="labOrderBtn" onclick="showLabOrder()">Lab Order</button>
+                    <button class="btn outline" id="imagingOrderBtn" onclick="showImagingOrder()">Imaging Order</button>
+                    <button class="btn outline" id="prescriptionOrderBtn" onclick="showPrescriptionOrder()">Prescription</button>
+                </div>
+            </div>
+
+            <!-- Lab Order Interface -->
+            <div id="labOrderInterface" class="order-interface">
+                <div class="drag-drop-container" style="display: flex; gap: 20px; margin-top: 20px;">
+                    <!-- Available Tests -->
+                    <div class="available-tests-container" style="flex: 1;">
+                        <h5 style="margin-bottom: 10px;">Available Lab Tests</h5>
+                        <div class="search-box" style="margin-bottom: 10px;">
+                            <input type="text" id="testSearchInput" class="form-control" placeholder="Search tests..." onkeyup="filterAvailableTests()">
+                        </div>
+                        <div id="availableTests" class="drag-drop-box available-box">
+                            <div class="loading-indicator" style="text-align: center; padding: 20px; color: #888;">
+                                <i class="fas fa-spinner fa-spin"></i> Loading available tests...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selected Tests -->
+                    <div class="selected-tests-container" style="flex: 1;">
+                        <h5 style="margin-bottom: 10px;">Selected Tests for Patient</h5>
+                        <div class="order-summary" style="margin-bottom: 10px; font-size: 0.9em; color: #666;">
+                            <span id="selectedCount">0</span> tests selected • Total: $<span id="totalCost">0.00</span>
+                        </div>
+                        <div id="selectedTests" class="drag-drop-box selected-box">
+                            <div class="empty-message" style="text-align: center; padding: 30px; color: #888;">
+                                <i class="fas fa-arrow-left" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <p>Drag lab tests here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Notes -->
+                <div style="margin-top: 20px;">
+                    <label for="orderNotes" style="display: block; margin-bottom: 5px; font-weight: bold;">Order Notes (Optional):</label>
+                    <textarea id="orderNotes" class="form-control" rows="3" placeholder="Enter any special instructions or notes for this lab order..."></textarea>
+                </div>
+
+                <!-- Priority Selection -->
+                <div style="margin-top: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Priority:</label>
+                    <select id="orderPriority" class="form-control" style="max-width: 200px;">
+                        <option value="routine">Routine</option>
+                        <option value="urgent">Urgent</option>
+                        <option value="stat">STAT</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Placeholder for other order types -->
+            <div id="imagingOrderInterface" class="order-interface" style="display: none;">
+                <p>Imaging order interface will be implemented here.</p>
+            </div>
+
+            <div id="prescriptionOrderInterface" class="order-interface" style="display: none;">
+                <p>Prescription order interface will be implemented here.</p>
+            </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-top: 1px solid #ddd; margin-top: 20px;">
+            <div class="order-total" style="font-weight: bold; color: #333;">
+                Total: $<span id="footerTotalCost">0.00</span>
+            </div>
+            <div>
+                <button class="btn ghost" onclick="closeModal('newOrderModal')">Cancel</button>
+                <button class="btn primary" onclick="submitOrder()" id="submitOrderBtn" disabled>Submit Order</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1488,7 +1889,7 @@ document.getElementById('createPatientForm').addEventListener('submit', async fu
                 description: `${serviceDescription} for ${patientData.first_name} ${patientData.last_name}`
             };
             
-            const invoiceResponse = await fetch('/api/invoices', {
+            const invoiceResponse = await fetch('/admin/api/invoices', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -1578,7 +1979,7 @@ document.getElementById('invoiceForm').addEventListener('submit', async function
     };
     
     try {
-        const response = await fetch('/api/invoices', {
+        const response = await fetch('/admin/api/invoices', {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -1593,7 +1994,15 @@ document.getElementById('invoiceForm').addEventListener('submit', async function
             throw new Error(errorData.message || 'Failed to create invoice');
         }
         
-        showAlert('Invoice generated successfully and sent to invoices@avivahealthcare.org!', 'success');
+        const invoiceResult = await response.json();
+        
+        // Redirect to invoice preview page
+        if (invoiceResult.view_url) {
+            window.open(invoiceResult.view_url, '_blank');
+            showAlert('Invoice created successfully! Opening preview...', 'success');
+        } else {
+            showAlert('Invoice created successfully!', 'success');
+        }
         closeInvoiceModal();
     } catch (e) {
         showAlert(`Failed to generate invoice: ${e.message}`, 'error');
@@ -1636,29 +2045,44 @@ async function secondOpinion(patientId){
 
 // Load doctors for dropdown
 function loadDoctors() {
-    // Fetch doctors from API
-    fetch('/api/doctors')
-        .then(response => response.json())
+    // Try to fetch doctors from API
+    fetch('/admin/api/doctors')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('API not available');
+            }
+            return response.json();
+        })
         .then(data => {
             doctorsData = data;
-            const doctorSelect = document.getElementById('assignedDoctor');
-            
-            // Clear existing options except the first one
-            while (doctorSelect.children.length > 1) {
-                doctorSelect.removeChild(doctorSelect.lastChild);
-            }
-            
-            data.forEach(doctor => {
-                const option = document.createElement('option');
-                option.value = doctor.id;
-                option.textContent = doctor.name;
-                doctorSelect.appendChild(option);
-            });
+            populateCreateDoctorSelect(data);
         })
         .catch(error => {
-            console.error('Failed to load doctors:', error);
-            showAlert('Failed to load doctors list', 'error');
+            console.warn('Failed to load doctors from API, using fallback:', error);
+            // Fallback doctor data - only active doctors
+            doctorsData = [
+                {id: 10, name: 'Dr. Sarah Johnson', email: 'doctor1@medgemma.com'},
+                {id: 12, name: 'Dr. MedGemma Doctor', email: 'doctor@medgemma.com'},
+                {id: 29, name: 'Dr. Amna Iqbal', email: 'amnaiqbal10396@gmail.com'}
+            ];
+            populateCreateDoctorSelect(doctorsData);
         });
+}
+
+function populateCreateDoctorSelect(doctors) {
+    const doctorSelect = document.getElementById('assignedDoctor');
+    
+    // Clear existing options except the first one
+    while (doctorSelect.children.length > 1) {
+        doctorSelect.removeChild(doctorSelect.lastChild);
+    }
+    
+    doctors.forEach(doctor => {
+        const option = document.createElement('option');
+        option.value = doctor.id;
+        option.textContent = doctor.name;
+        doctorSelect.appendChild(option);
+    });
 }
 
 function showCreatePatientModal() {
@@ -1730,17 +2154,29 @@ function loadPatientsForInvoice() {
 }
 
 function loadDoctorsForInvoice() {
-    // Fetch doctors from API if not already loaded
+    // Use already loaded doctors data if available
     if (doctorsData.length === 0) {
-        fetch('/api/doctors')
-            .then(response => response.json())
+        // Try to fetch doctors from API
+        fetch('/admin/api/doctors')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('API not available');
+                }
+                return response.json();
+            })
             .then(data => {
                 doctorsData = data;
                 populateInvoiceDoctorSelect(data);
             })
             .catch(error => {
-                console.error('Failed to load doctors:', error);
-                showAlert('Failed to load doctors list', 'error');
+                console.warn('Failed to load doctors from API, using fallback:', error);
+                // Fallback doctor data - only active doctors
+                doctorsData = [
+                    {id: 10, name: 'Dr. Sarah Johnson', email: 'doctor1@medgemma.com'},
+                    {id: 12, name: 'Dr. MedGemma Doctor', email: 'doctor@medgemma.com'},
+                    {id: 29, name: 'Dr. Amna Iqbal', email: 'amnaiqbal10396@gmail.com'}
+                ];
+                populateInvoiceDoctorSelect(doctorsData);
             });
     } else {
         populateInvoiceDoctorSelect(doctorsData);
@@ -2724,5 +3160,275 @@ window.onclick = function(event) {
     }
 }
 </style>
+
+<script>
+// Available lab tests data
+let availableTests = [];
+let selectedTests = [];
+
+// New Order Modal Functions
+function openNewOrderModal() {
+    document.getElementById('newOrderModal').style.display = 'flex';
+    showLabOrder(); // Default to lab order
+}
+
+function showLabOrder() {
+    // Update button states
+    document.getElementById('labOrderBtn').className = 'btn primary active';
+    document.getElementById('imagingOrderBtn').className = 'btn outline';
+    document.getElementById('prescriptionOrderBtn').className = 'btn outline';
+    
+    // Show lab order interface
+    document.getElementById('labOrderInterface').className = 'order-interface active';
+    document.getElementById('imagingOrderInterface').className = 'order-interface';
+    document.getElementById('prescriptionOrderInterface').className = 'order-interface';
+    
+    // Load available tests if not already loaded
+    if (availableTests.length === 0) {
+        loadAvailableTests();
+    }
+}
+
+function showImagingOrder() {
+    document.getElementById('labOrderBtn').className = 'btn outline';
+    document.getElementById('imagingOrderBtn').className = 'btn primary active';
+    document.getElementById('prescriptionOrderBtn').className = 'btn outline';
+    
+    document.getElementById('labOrderInterface').className = 'order-interface';
+    document.getElementById('imagingOrderInterface').className = 'order-interface active';
+    document.getElementById('prescriptionOrderInterface').className = 'order-interface';
+}
+
+function showPrescriptionOrder() {
+    document.getElementById('labOrderBtn').className = 'btn outline';
+    document.getElementById('imagingOrderBtn').className = 'btn outline';
+    document.getElementById('prescriptionOrderBtn').className = 'btn primary active';
+    
+    document.getElementById('labOrderInterface').className = 'order-interface';
+    document.getElementById('imagingOrderInterface').className = 'order-interface';
+    document.getElementById('prescriptionOrderInterface').className = 'order-interface active';
+}
+
+// Load available lab tests from API
+async function loadAvailableTests() {
+    try {
+        const response = await fetch('/api/configuration/lab-tests');
+        if (response.ok) {
+            const data = await response.json();
+            availableTests = data.data || data; // Handle different response formats
+            renderAvailableTests();
+        } else {
+            console.error('Failed to load lab tests:', response.statusText);
+            document.getElementById('availableTests').innerHTML = 
+                '<div style="text-align: center; padding: 20px; color: #ef4444;">Failed to load available tests</div>';
+        }
+    } catch (error) {
+        console.error('Error loading lab tests:', error);
+        document.getElementById('availableTests').innerHTML = 
+            '<div style="text-align: center; padding: 20px; color: #ef4444;">Error loading tests</div>';
+    }
+}
+
+// Render available tests in the drag-and-drop box
+function renderAvailableTests(filteredTests = null) {
+    const testsToRender = filteredTests || availableTests;
+    const availableTestsContainer = document.getElementById('availableTests');
+    
+    if (testsToRender.length === 0) {
+        availableTestsContainer.innerHTML = 
+            '<div style="text-align: center; padding: 20px; color: #888;">No tests available</div>';
+        return;
+    }
+    
+    availableTestsContainer.innerHTML = testsToRender.map(test => `
+        <div class="test-item" draggable="true" data-test-id="${test.id}" ondragstart="dragStart(event)" ondragend="dragEnd(event)">
+            <div class="test-name">${test.test_name}</div>
+            <div>
+                <span class="test-code">${test.test_code}</span>
+                <span class="test-cost">$${parseFloat(test.cost || 0).toFixed(2)}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Search and filter available tests
+function filterAvailableTests() {
+    const searchTerm = document.getElementById('testSearchInput').value.toLowerCase();
+    const filteredTests = availableTests.filter(test => 
+        test.test_name.toLowerCase().includes(searchTerm) || 
+        test.test_code.toLowerCase().includes(searchTerm)
+    );
+    renderAvailableTests(filteredTests);
+}
+
+// Drag and drop functions
+function dragStart(event) {
+    event.target.classList.add('dragging');
+    event.dataTransfer.setData('text/plain', event.target.dataset.testId);
+}
+
+function dragEnd(event) {
+    event.target.classList.remove('dragging');
+}
+
+// Selected tests container setup
+const selectedTestsContainer = document.getElementById('selectedTests');
+
+selectedTestsContainer.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.classList.add('drag-over');
+});
+
+selectedTestsContainer.addEventListener('dragleave', function(e) {
+    this.classList.remove('drag-over');
+});
+
+selectedTestsContainer.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('drag-over');
+    
+    const testId = e.dataTransfer.getData('text/plain');
+    const test = availableTests.find(t => t.id == testId);
+    
+    if (test && !selectedTests.find(t => t.id == testId)) {
+        selectedTests.push(test);
+        renderSelectedTests();
+        updateOrderSummary();
+    }
+});
+
+// Render selected tests
+function renderSelectedTests() {
+    const selectedTestsContainer = document.getElementById('selectedTests');
+    
+    if (selectedTests.length === 0) {
+        selectedTestsContainer.innerHTML = `
+            <div class="empty-message">
+                <i class="fas fa-arrow-left" style="font-size: 24px; margin-bottom: 10px;"></i>
+                <p>Drag lab tests here</p>
+            </div>
+        `;
+        return;
+    }
+    
+    selectedTestsContainer.innerHTML = selectedTests.map(test => `
+        <div class="test-item selected">
+            <button class="remove-btn" onclick="removeSelectedTest(${test.id})">&times;</button>
+            <div class="test-name">${test.test_name}</div>
+            <div>
+                <span class="test-code">${test.test_code}</span>
+                <span class="test-cost">$${parseFloat(test.cost || 0).toFixed(2)}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Remove selected test
+function removeSelectedTest(testId) {
+    selectedTests = selectedTests.filter(test => test.id != testId);
+    renderSelectedTests();
+    updateOrderSummary();
+}
+
+// Update order summary and totals
+function updateOrderSummary() {
+    const count = selectedTests.length;
+    const total = selectedTests.reduce((sum, test) => sum + parseFloat(test.cost || 0), 0);
+    
+    document.getElementById('selectedCount').textContent = count;
+    document.getElementById('totalCost').textContent = total.toFixed(2);
+    document.getElementById('footerTotalCost').textContent = total.toFixed(2);
+    
+    // Enable/disable submit button
+    document.getElementById('submitOrderBtn').disabled = count === 0;
+}
+
+// Submit order function
+async function submitOrder() {
+    const activePatient = document.querySelector('.patient-item.active');
+    if (!activePatient) {
+        alert('Please select a patient first');
+        return;
+    }
+    
+    const patientId = activePatient.dataset.patientId;
+    const orderNotes = document.getElementById('orderNotes').value.trim();
+    const priority = document.getElementById('orderPriority').value;
+    
+    if (selectedTests.length === 0) {
+        alert('Please select at least one test');
+        return;
+    }
+    
+    const orderData = {
+        patient_id: patientId,
+        tests: selectedTests.map(test => ({
+            test_id: test.id,
+            test_code: test.test_code,
+            test_name: test.test_name,
+            cost: test.cost
+        })),
+        notes: orderNotes,
+        priority: priority,
+        order_type: 'lab'
+    };
+    
+    try {
+        document.getElementById('submitOrderBtn').disabled = true;
+        document.getElementById('submitOrderBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        
+        const response = await fetch('/api/orders/lab-orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(orderData)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            alert('Lab order submitted successfully!');
+            closeModal('newOrderModal');
+            
+            // Reset form
+            selectedTests = [];
+            renderSelectedTests();
+            updateOrderSummary();
+            document.getElementById('orderNotes').value = '';
+            document.getElementById('orderPriority').value = 'routine';
+            document.getElementById('testSearchInput').value = '';
+            renderAvailableTests();
+        } else {
+            const error = await response.json();
+            alert('Failed to submit order: ' + (error.message || response.statusText));
+        }
+    } catch (error) {
+        console.error('Error submitting order:', error);
+        alert('Error submitting order. Please try again.');
+    } finally {
+        document.getElementById('submitOrderBtn').disabled = false;
+        document.getElementById('submitOrderBtn').innerHTML = 'Submit Order';
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up available tests container drag and drop prevention (to remove items)
+    const availableTestsContainer = document.getElementById('availableTests');
+    
+    availableTestsContainer.addEventListener('dragover', function(e) {
+        e.preventDefault();
+    });
+    
+    availableTestsContainer.addEventListener('drop', function(e) {
+        e.preventDefault();
+        // Allow dropping back to available tests (remove from selected)
+        const testId = e.dataTransfer.getData('text/plain');
+        removeSelectedTest(testId);
+    });
+});
+</script>
+
 </body>
 </html>

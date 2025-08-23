@@ -45,4 +45,28 @@ class RoleHelper
     {
         return self::userHasRole($user, 'Lab Technician');
     }
+
+    /**
+     * Check if user is a pharmacist
+     */
+    public static function isPharmacist(User $user): bool
+    {
+        return self::userHasRole($user, 'Pharmacist');
+    }
+
+    /**
+     * Check if user is an owner
+     */
+    public static function isOwner(User $user): bool
+    {
+        return self::userHasRole($user, 'owner') || self::userHasRole($user, 'Owner');
+    }
+
+    /**
+     * Check if user is a patient
+     */
+    public static function isPatient(User $user): bool
+    {
+        return self::userHasRole($user, 'Patient');
+    }
 }

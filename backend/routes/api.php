@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\ImagingStudy;
 use App\Models\User;
 use App\Http\Controllers\ConfigurationController;
+use App\Http\Controllers\DicomController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,9 @@ use App\Http\Controllers\ConfigurationController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+// Include notification and supplier management routes
+require __DIR__.'/api_notifications.php';
 
 // Dashboard API
 Route::get('/dashboard-stats', [\App\Http\Controllers\Api\DashboardController::class, 'stats']);
@@ -854,5 +858,224 @@ Route::prefix('admin/api')->middleware(['auth'])->group(function () {
             'message' => 'Invoice created successfully',
             'invoice' => $invoice
         ]);
+    });
+    
+    // DICOM and Imaging Study Routes
+    Route::prefix('imaging')->group(function () {
+        // Get all imaging studies
+        Route::get('/studies', function () {
+            try {
+                $studies = ImagingStudy::with(['patient', 'created_by_user'])
+                    ->orderBy('created_at', 'desc')
+                    ->get()
+                    ->map(function ($study) {
+                        return [
+                            'id' => $study->id,
+                            'patient_name' => $study->patient->name ?? 'Unknown Patient',
+                            'patient_mrn' => $study->patient->mrn ?? 'N/A',
+                            'modality' => $study->modality,
+                            'description' => $study->description,
+                            'study_date' => $study->study_date,
+                            'status' => $study->status ?? 'pending',
+                            'urgency' => $study->urgency ?? 'normal',
+                            'created_at' => $study->created_at->format('Y-m-d H:i:s')
+                        ];
+                    });
+
+                return response()->json($studies);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Failed to load imaging studies',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        });
+        
+        // Upload DICOM study
+        Route::post('/upload', function (Request $request) {
+            $request->validate([
+                'patient_id' => 'required|exists:patients,id',
+                'modality' => 'required|string',
+                'description' => 'required|string',
+                'dicom_files.*' => 'required|file|mimes:dcm,dicom'
+            ]);
+
+            try {
+                $study = ImagingStudy::create([
+                    'patient_id' => $request->patient_id,
+                    'modality' => $request->modality,
+                    'description' => $request->description,
+                    'study_date' => now(),
+                    'status' => 'pending',
+                    'urgency' => $request->urgency ?? 'normal',
+                    'created_by' => auth()->id() ?? 1,
+                ]);
+
+                // Handle file uploads
+                if ($request->hasFile('dicom_files')) {
+                    $uploadedFiles = [];
+                    foreach ($request->file('dicom_files') as $file) {
+                        $filename = time() . '_' . $file->getClientOriginalName();
+                        $path = $file->storeAs('dicom/' . $study->id, $filename, 'public');
+                        $uploadedFiles[] = $path;
+                    }
+                    
+                    $study->update([
+                        'file_paths' => json_encode($uploadedFiles)
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'DICOM study uploaded successfully',
+                    'study' => $study
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Failed to upload DICOM study',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        });
+        
+        // Get study details
+        Route::get('/studies/{id}', function ($id) {
+            try {
+                $study = ImagingStudy::with(['patient', 'created_by_user'])->findOrFail($id);
+                
+                return response()->json([
+                    'id' => $study->id,
+                    'patient_name' => $study->patient->name,
+                    'patient_mrn' => $study->patient->mrn,
+                    'modality' => $study->modality,
+                    'description' => $study->description,
+                    'study_date' => $study->study_date,
+                    'status' => $study->status,
+                    'urgency' => $study->urgency,
+                    'file_paths' => json_decode($study->file_paths ?? '[]'),
+                    'created_at' => $study->created_at->format('Y-m-d H:i:s')
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Study not found',
+                    'message' => $e->getMessage()
+                ], 404);
+            }
+        });
+        
+        // AI Analysis endpoint
+        Route::post('/analyze/{id}', function ($id, Request $request) {
+            $request->validate([
+                'analysis_type' => 'required|string',
+                'confidence_threshold' => 'numeric|between:0.5,0.95'
+            ]);
+            
+            try {
+                $study = ImagingStudy::findOrFail($id);
+                
+                // Simulate AI analysis (in production, this would call actual AI service)
+                $analysisResults = [
+                    'study_id' => $study->id,
+                    'analysis_type' => $request->analysis_type,
+                    'confidence' => $request->confidence_threshold ?? 0.8,
+                    'findings' => [
+                        'abnormality' => [
+                            'detected' => false,
+                            'confidence' => 85,
+                            'description' => 'No significant abnormalities detected'
+                        ],
+                        'quality' => [
+                            'score' => 92,
+                            'description' => 'Good image quality'
+                        ]
+                    ],
+                    'recommendations' => [
+                        'Follow-up recommended in 6 months',
+                        'Patient education on preventive care'
+                    ],
+                    'analyzed_at' => now()->toISOString()
+                ];
+                
+                return response()->json([
+                    'success' => true,
+                    'results' => $analysisResults
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Analysis failed',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        });
+        
+        // Update study status
+        Route::patch('/studies/{id}/status', function ($id, Request $request) {
+            $request->validate([
+                'status' => 'required|in:pending,in-progress,completed,archived'
+            ]);
+            
+            try {
+                $study = ImagingStudy::findOrFail($id);
+                $study->update(['status' => $request->status]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Study status updated successfully'
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Failed to update study status',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        });
+    });
+});
+
+// Platform Management APIs (protected by Sanctum)
+Route::middleware('auth:sanctum')->group(function () {
+    
+    // Notifications API
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+        Route::patch('/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
+        Route::patch('/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
+        Route::get('/counts', [\App\Http\Controllers\Api\NotificationController::class, 'getCounts']);
+        Route::delete('/{id}', [\App\Http\Controllers\Api\NotificationController::class, 'destroy']);
+    });
+
+    // Suppliers API
+    Route::prefix('suppliers')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\SupplierController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\SupplierController::class, 'store']);
+        Route::get('/{supplier}', [\App\Http\Controllers\Api\SupplierController::class, 'show']);
+        Route::put('/{supplier}', [\App\Http\Controllers\Api\SupplierController::class, 'update']);
+        Route::delete('/{supplier}', [\App\Http\Controllers\Api\SupplierController::class, 'destroy']);
+        Route::get('/{supplier}/work-orders', [\App\Http\Controllers\Api\SupplierController::class, 'workOrders']);
+        
+        // User assignments
+        Route::get('/user/assignments', [\App\Http\Controllers\Api\SupplierController::class, 'userAssignments']);
+        Route::post('/assign', [\App\Http\Controllers\Api\SupplierController::class, 'assignToUser']);
+        Route::delete('/assignments/{id}', [\App\Http\Controllers\Api\SupplierController::class, 'removeAssignment']);
+    });
+
+    // Work Orders API
+    Route::prefix('work-orders')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\WorkOrderController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\WorkOrderController::class, 'store']);
+        Route::get('/statistics/overview', [\App\Http\Controllers\Api\WorkOrderController::class, 'getStatistics']);
+        Route::get('/{workOrder}', [\App\Http\Controllers\Api\WorkOrderController::class, 'show']);
+        Route::put('/{workOrder}', [\App\Http\Controllers\Api\WorkOrderController::class, 'update']);
+        Route::delete('/{workOrder}', [\App\Http\Controllers\Api\WorkOrderController::class, 'destroy']);
+    });
+
+    // Business Intelligence API (Owner role only)
+    Route::middleware('role:owner')->prefix('business-intelligence')->group(function () {
+        Route::get('/data', [\App\Http\Controllers\Api\BusinessIntelligenceController::class, 'getBusinessData']);
+        Route::get('/expense-tracking', [\App\Http\Controllers\Api\BusinessIntelligenceController::class, 'getExpenseTracking']);
+        Route::get('/income-expenses-analysis', [\App\Http\Controllers\Api\BusinessIntelligenceController::class, 'getIncomeVsExpenses']);
+        Route::post('/ai-insights', [\App\Http\Controllers\Api\BusinessIntelligenceController::class, 'generateAIInsights']);
+        Route::get('/export', [\App\Http\Controllers\Api\BusinessIntelligenceController::class, 'exportBusinessReport']);
+        Route::get('/department-performance', [\App\Http\Controllers\Api\BusinessIntelligenceController::class, 'getDepartmentPerformance']);
     });
 });

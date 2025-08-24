@@ -17,6 +17,11 @@ class CheckUserActive
      */
     public function handle(Request $request, Closure $next)
     {
+        // Skip check for quick login routes and login routes
+        if ($request->is('quick-login/*') || $request->is('login') || $request->is('auth/*')) {
+            return $next($request);
+        }
+        
         if (Auth::check()) {
             $user = Auth::user();
             

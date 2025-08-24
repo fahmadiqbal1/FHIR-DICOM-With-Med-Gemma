@@ -463,16 +463,13 @@
                         <td>${new Date(invoice.created_at).toLocaleDateString()}</td>
                         <td>
                             <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-info" onclick="viewInvoice(${invoice.id})" title="View">
+                                <button class="btn btn-outline-info" onclick="viewInvoice(${invoice.id})" title="View PDF">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <button class="btn btn-outline-warning" onclick="editInvoice(${invoice.id})" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-outline-success" onclick="downloadInvoice(${invoice.id})" title="Download">
+                                <button class="btn btn-outline-success" onclick="downloadInvoice(${invoice.id})" title="Download PDF">
                                     <i class="fas fa-download"></i>
                                 </button>
-                                <button class="btn btn-outline-primary" onclick="sendInvoice(${invoice.id})" title="Send">
+                                <button class="btn btn-outline-primary" onclick="sendInvoice(${invoice.id})" title="Send Email">
                                     <i class="fas fa-paper-plane"></i>
                                 </button>
                             </div>
@@ -607,20 +604,52 @@
         }
 
         function viewInvoice(id) {
-            window.open(`/api/invoices/${id}/view`, '_blank');
-        }
-
-        function editInvoice(id) {
-            showToast(`Opening editor for invoice ${id}...`, 'info');
+            // Open invoice in a new tab for viewing
+            window.open(`/invoices/${id}`, '_blank');
+            showToast(`Opening invoice ${id} for viewing...`, 'info');
         }
 
         function downloadInvoice(id) {
-            window.open(`/api/invoices/${id}/view?download=1`, '_blank');
-            showToast('Invoice download started...', 'success');
+            // Download invoice as PDF
+            const link = document.createElement('a');
+            link.href = `/invoices/${id}?download=1`;
+            link.download = `invoice-${id}.pdf`;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast(`Invoice ${id} download started...`, 'success');
         }
 
         function sendInvoice(id) {
-            showToast(`Sending invoice ${id} to patient...`, 'success');
+            // Show email modal for sending invoice
+            const email = prompt('Enter email address to send invoice:');
+            if (email && email.trim()) {
+                fetch(`/api/invoices/${id}/email`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ 
+                        email: email.trim(),
+                        message: 'Please find attached your invoice. Thank you for your business.'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        showToast(data.message, 'success');
+                    } else {
+                        showToast('Invoice sent successfully!', 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending invoice:', error);
+                    showToast('Failed to send invoice. Please try again.', 'error');
+                });
+            }
         }
 
         function executeBulkAction() {

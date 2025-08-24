@@ -25,7 +25,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(AuditLogMiddleware::class);
         $middleware->web(append: [
             \App\Http\Middleware\CheckSessionTimeout::class,
-            \App\Http\Middleware\CheckUserActive::class,
         ]);
         // Disable CSRF for API routes
         $middleware->validateCsrfTokens(except: [

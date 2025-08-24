@@ -535,7 +535,7 @@
             color: #fff;
         }
 
-        /* Drag and Drop Styles */
+        /* Drag and Drop Styles - Fixed for better visibility */
         .drag-drop-container {
             display: flex;
             gap: 20px;
@@ -546,52 +546,58 @@
             min-height: 300px;
             max-height: 400px;
             overflow-y: auto;
-            border: 2px dashed #d1d5db;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
             border-radius: 8px;
             padding: 15px;
-            background: #f9fafb;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
 
         .drag-drop-box.drag-over {
             border-color: #4f46e5;
-            background: #f0f7ff;
+            background: rgba(79, 70, 229, 0.2);
+            transform: scale(1.02);
         }
 
         .available-box {
-            border-color: #10b981;
-            background: #f0fdf4;
+            border-color: rgba(16, 185, 129, 0.5);
+            background: rgba(16, 185, 129, 0.05);
         }
 
         .selected-box {
-            border-color: #3b82f6;
-            background: #eff6ff;
+            border-color: rgba(59, 130, 246, 0.5);
+            background: rgba(59, 130, 246, 0.05);
         }
 
         .test-item {
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333 !important;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 6px;
             padding: 10px;
             margin-bottom: 8px;
             cursor: grab;
             transition: all 0.2s ease;
             user-select: none;
+            position: relative;
         }
 
         .test-item:hover {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.95);
         }
 
         .test-item.dragging {
             opacity: 0.5;
             cursor: grabbing;
+            transform: rotate(2deg);
         }
 
         .test-item.selected {
             border-color: #3b82f6;
-            background: #eff6ff;
+            background: rgba(59, 130, 246, 0.1);
         }
 
         .test-item.selected .remove-btn {
@@ -600,13 +606,13 @@
 
         .test-name {
             font-weight: 600;
-            color: #374151;
+            color: #374151 !important;
             margin-bottom: 4px;
         }
 
         .test-code {
             font-size: 0.8em;
-            color: #6b7280;
+            color: #6b7280 !important;
             background: #f3f4f6;
             padding: 2px 6px;
             border-radius: 3px;
@@ -616,7 +622,7 @@
         .test-cost {
             float: right;
             font-weight: 600;
-            color: #059669;
+            color: #059669 !important;
         }
 
         .remove-btn {
@@ -642,26 +648,30 @@
         .selected-tests-container .test-item {
             position: relative;
             border-color: #3b82f6;
-            background: #eff6ff;
+            background: rgba(59, 130, 246, 0.1);
         }
 
         .empty-message {
             text-align: center;
             padding: 30px;
-            color: #9ca3af;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .empty-message i {
+            color: rgba(255, 255, 255, 0.5);
         }
 
         .loading-indicator {
             text-align: center;
             padding: 20px;
-            color: #6b7280;
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .order-summary {
             font-size: 0.9em;
-            color: #6b7280;
+            color: rgba(255, 255, 255, 0.8);
             padding: 8px 12px;
-            background: #f3f4f6;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
             text-align: center;
         }
@@ -684,6 +694,17 @@
 
         .order-interface.active {
             display: block;
+        }
+
+        /* Modal z-index fixes */
+        #newOrderModal {
+            z-index: 10000 !important;
+        }
+
+        #newOrderModal .modal-content {
+            background: rgba(30, 30, 30, 0.98) !important;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .form-actions {
@@ -927,8 +948,8 @@
     <div class="app-header">
         <div class="inner">
             <div class="logo">
-                <div class="mark">🩺</div>
-                <span>Doctor Dashboard - MedGemma</span>
+                <div class="mark">👥</div>
+                <span>{{ Auth::user()->role === 'admin' ? 'Patient Management - Admin' : 'Patient Management - Doctor' }}</span>
             </div>
             <div class="user-info">
                 <span class="user-name">{{ auth()->user()->name ?? 'Doctor' }}</span>
@@ -3168,8 +3189,16 @@ let selectedTests = [];
 
 // New Order Modal Functions
 function openNewOrderModal() {
+    if (!currentPatientId) {
+        alert('Please select a patient first to create an order.');
+        return;
+    }
     document.getElementById('newOrderModal').style.display = 'flex';
     showLabOrder(); // Default to lab order
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
 }
 
 function showLabOrder() {
@@ -3270,32 +3299,6 @@ function dragStart(event) {
 function dragEnd(event) {
     event.target.classList.remove('dragging');
 }
-
-// Selected tests container setup
-const selectedTestsContainer = document.getElementById('selectedTests');
-
-selectedTestsContainer.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    this.classList.add('drag-over');
-});
-
-selectedTestsContainer.addEventListener('dragleave', function(e) {
-    this.classList.remove('drag-over');
-});
-
-selectedTestsContainer.addEventListener('drop', function(e) {
-    e.preventDefault();
-    this.classList.remove('drag-over');
-    
-    const testId = e.dataTransfer.getData('text/plain');
-    const test = availableTests.find(t => t.id == testId);
-    
-    if (test && !selectedTests.find(t => t.id == testId)) {
-        selectedTests.push(test);
-        renderSelectedTests();
-        updateOrderSummary();
-    }
-});
 
 // Render selected tests
 function renderSelectedTests() {
@@ -3416,17 +3419,47 @@ async function submitOrder() {
 document.addEventListener('DOMContentLoaded', function() {
     // Set up available tests container drag and drop prevention (to remove items)
     const availableTestsContainer = document.getElementById('availableTests');
+    const selectedTestsContainer = document.getElementById('selectedTests');
     
-    availableTestsContainer.addEventListener('dragover', function(e) {
-        e.preventDefault();
-    });
+    // Setup drag and drop for available tests container
+    if (availableTestsContainer) {
+        availableTestsContainer.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        availableTestsContainer.addEventListener('drop', function(e) {
+            e.preventDefault();
+            // Allow dropping back to available tests (remove from selected)
+            const testId = e.dataTransfer.getData('text/plain');
+            removeSelectedTest(testId);
+        });
+    }
     
-    availableTestsContainer.addEventListener('drop', function(e) {
-        e.preventDefault();
-        // Allow dropping back to available tests (remove from selected)
-        const testId = e.dataTransfer.getData('text/plain');
-        removeSelectedTest(testId);
-    });
+    // Setup drag and drop for selected tests container
+    if (selectedTestsContainer) {
+        selectedTestsContainer.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        });
+
+        selectedTestsContainer.addEventListener('dragleave', function(e) {
+            this.classList.remove('drag-over');
+        });
+
+        selectedTestsContainer.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            const testId = e.dataTransfer.getData('text/plain');
+            const test = availableTests.find(t => t.id == testId);
+            
+            if (test && !selectedTests.find(t => t.id == testId)) {
+                selectedTests.push(test);
+                renderSelectedTests();
+                updateOrderSummary();
+            }
+        });
+    }
 });
 </script>
 

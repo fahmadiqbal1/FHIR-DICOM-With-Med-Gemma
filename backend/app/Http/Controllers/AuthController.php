@@ -19,7 +19,7 @@ class AuthController extends Controller
             return redirect()->intended('/dashboard');
         }
         
-        return view('auth.login');
+        return view('auth.login-fixed');
     }
 
     /**
@@ -42,8 +42,8 @@ class AuthController extends Controller
             'user_agent' => $request->userAgent()
         ]);
         
-        // Set session timeout to 5 minutes (300 seconds)
-        config(['session.lifetime' => 5]);
+        // Set session timeout to 2 hours (120 minutes) for better user experience
+        config(['session.lifetime' => 120]);
         
         // Attempt authentication
         if (Auth::attempt($credentials, $request->filled('remember'))) {

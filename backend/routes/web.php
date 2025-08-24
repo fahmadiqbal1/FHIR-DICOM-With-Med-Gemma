@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DicomController;
 use App\Http\Controllers\FhirController;
@@ -25,6 +26,14 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
+
+// Quick login routes for demo (no auth middleware required)
+Route::get('/quick-login', [QuickLoginController::class, 'showQuickLogin']);
+Route::get('/quick-login/admin', [QuickLoginController::class, 'loginAsAdmin']);
+Route::get('/quick-login/doctor', [QuickLoginController::class, 'loginAsDoctor']);
+Route::get('/quick-login/radiologist', [QuickLoginController::class, 'loginAsRadiologist']);
+Route::get('/quick-login/lab-tech', [QuickLoginController::class, 'loginAsLabTech']);
+Route::get('/quick-login/owner', [QuickLoginController::class, 'loginAsOwner']);
 
 // Heartbeat endpoint for session management
 Route::post('/heartbeat', function () {
@@ -54,13 +63,13 @@ Route::get('/login-debug', function () {
 Route::get('/', function () {
     // Redirect to login if not authenticated, otherwise to dashboard
     if (!Auth::check()) {
-        return redirect('/login');
+        return redirect()->route('login');
     }
-    return redirect('/dashboard');
+    return redirect()->route('dashboard');
 });
 
 // Protected routes that require authentication
-Route::middleware(['auth', 'session.timeout'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
 // Simple front-end dashboard
 Route::get('/app', function () {
@@ -71,30 +80,158 @@ Route::get('/app', function () {
 Route::get('/dashboard', function () {
     $user = Auth::user();
     
+    // User is guaranteed to exist due to auth middleware
     if (!$user) {
-        return redirect('/login');
+        Log::error('Dashboard: No user found despite auth middleware');
+        return redirect()->route('login');
     }
     
-    // Check for owner role first (using Spatie Permission methods)
-    if ($user->hasRole('owner') || $user->hasRole('Owner')) {
-        return view('owner-dashboard', compact('user')); // Dedicated owner dashboard
+    // Debug: Log user role detection
+    Log::info('Dashboard access attempt', [
+        'user_id' => $user->id,
+        'email' => $user->email,
+        'role_column' => $user->role ?? 'null',
+        'spatie_roles' => $user->roles->pluck('name')->toArray()
+    ]);
+    
+    // Check for owner role first (both old and new systems)
+    if ($user->role === 'owner' || $user->hasRole('owner') || $user->hasRole('Owner')) {
+        Log::info('Redirecting to owner dashboard');
+        
+        // Get dashboard data
+        $totalRevenue = \App\Models\Invoice::where('status', 'paid')->sum('amount');
+        $totalProfit = \App\Models\DoctorEarning::sum('admin_share');
+        $profitMargin = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
+        
+        // Get department-wise revenue (last 30 days)
+        $departmentRevenue = \App\Models\Invoice::join('users', 'invoices.doctor_id', '=', 'users.id')
+            ->where('invoices.created_at', '>=', now()->subDays(30))
+            ->where('invoices.status', 'paid')
+            ->selectRaw('
+                CASE 
+                    WHEN invoices.description LIKE "%CT%" OR invoices.description LIKE "%MRI%" OR invoices.description LIKE "%X-Ray%" OR invoices.description LIKE "%Ultrasound%" THEN "radiology"
+                    WHEN invoices.description LIKE "%Laboratory%" OR invoices.description LIKE "%Test%" OR invoices.description LIKE "%CBC%" THEN "laboratory" 
+                    WHEN invoices.description LIKE "%Prescription%" OR invoices.description LIKE "%Medication%" THEN "pharmacy"
+                    ELSE "consultation"
+                END as department,
+                SUM(invoices.amount) as revenue,
+                COUNT(*) as procedures
+            ')
+            ->groupBy('department')
+            ->get()
+            ->keyBy('department');
+        
+        // Staff count
+        $staffCount = [
+            'total' => \App\Models\User::count() - 1, // Exclude owner
+            'doctors' => \App\Models\User::where(function($q) { 
+                $q->where('role', 'doctor')->orWhereHas('roles', function($r) { 
+                    $r->where('name', 'Doctor'); 
+                }); 
+            })->count(),
+            'lab_techs' => \App\Models\User::where(function($q) { 
+                $q->where('role', 'lab_tech')->orWhereHas('roles', function($r) { 
+                    $r->where('name', 'Lab Technician'); 
+                }); 
+            })->count(),
+            'radiologists' => \App\Models\User::where(function($q) { 
+                $q->where('role', 'radiologist')->orWhereHas('roles', function($r) { 
+                    $r->where('name', 'Radiologist'); 
+                }); 
+            })->count(),
+            'pharmacists' => \App\Models\User::where(function($q) { 
+                $q->where('role', 'pharmacist')->orWhereHas('roles', function($r) { 
+                    $r->where('name', 'Pharmacist'); 
+                }); 
+            })->count(),
+            'admins' => \App\Models\User::where(function($q) { 
+                $q->where('role', 'admin')->orWhereHas('roles', function($r) { 
+                    $r->where('name', 'Admin'); 
+                }); 
+            })->count(),
+        ];
+        
+        $dashboardData = [
+            'total_revenue' => round($totalRevenue, 2),
+            'total_profit' => round($totalProfit, 2),
+            'profit_margin' => round($profitMargin, 2),
+            'departments' => [
+                'consultation' => [
+                    'revenue' => round($departmentRevenue->get('consultation')->revenue ?? 0, 2),
+                    'owner_profit' => round(($departmentRevenue->get('consultation')->revenue ?? 0) * 0.3, 2),
+                    'margin' => 30,
+                    'procedures' => $departmentRevenue->get('consultation')->procedures ?? 0
+                ],
+                'laboratory' => [
+                    'revenue' => round($departmentRevenue->get('laboratory')->revenue ?? 0, 2),
+                    'owner_profit' => round(($departmentRevenue->get('laboratory')->revenue ?? 0) * 0.3, 2),
+                    'margin' => 30,
+                    'procedures' => $departmentRevenue->get('laboratory')->procedures ?? 0
+                ],
+                'radiology' => [
+                    'revenue' => round($departmentRevenue->get('radiology')->revenue ?? 0, 2),
+                    'owner_profit' => round(($departmentRevenue->get('radiology')->revenue ?? 0) * 0.3, 2),
+                    'margin' => 30,
+                    'procedures' => $departmentRevenue->get('radiology')->procedures ?? 0
+                ],
+                'pharmacy' => [
+                    'revenue' => round($departmentRevenue->get('pharmacy')->revenue ?? 0, 2),
+                    'owner_profit' => round(($departmentRevenue->get('pharmacy')->revenue ?? 0) * 0.3, 2),
+                    'margin' => 30,
+                    'procedures' => $departmentRevenue->get('pharmacy')->procedures ?? 0
+                ]
+            ],
+            'staff_count' => $staffCount,
+            'performance_metrics' => [
+                'patient_satisfaction' => 94,
+                'staff_utilization' => 87,
+                'equipment_uptime' => 96,
+                'roi' => round($totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0, 1)
+            ],
+            'recent_activity' => [
+                'new_patients_today' => \App\Models\Patient::whereDate('created_at', today())->count(),
+                'invoices_today' => \App\Models\Invoice::whereDate('created_at', today())->count(),
+                'revenue_today' => \App\Models\Invoice::whereDate('created_at', today())->where('status', 'paid')->sum('amount')
+            ]
+        ];
+        
+        return view('owner-dashboard', compact('user', 'dashboardData')); // Pass data to view
     }
     
-    // Redirect based on user role using helper
-    if (RoleHelper::isRadiologist($user)) {
-        return view('radiologist-dashboard'); // Dedicated radiologist dashboard
-    } elseif (RoleHelper::isLabTechnician($user)) {
-        return view('lab-tech-dashboard'); // Dedicated lab tech dashboard  
-    } elseif (RoleHelper::isPharmacist($user)) {
-        return view('pharmacist-dashboard'); // Dedicated pharmacist dashboard
-    } elseif (RoleHelper::isDoctor($user)) {
+    // Check for admin role (both systems)
+    if ($user->role === 'admin' || $user->hasRole('admin') || $user->hasRole('Admin')) {
+        Log::info('Redirecting to admin dashboard');
+        return view('admin-dashboard'); // Dedicated admin dashboard
+    }
+    
+    // Check for doctor role (both systems)  
+    if ($user->role === 'doctor' || $user->hasRole('doctor') || $user->hasRole('Doctor') || RoleHelper::isDoctor($user)) {
+        Log::info('Redirecting to doctor dashboard');
         return view('doctor-dashboard'); // Dedicated doctor dashboard with financials
-    } elseif (RoleHelper::isAdmin($user)) {
-        return view('admin-dashboard'); // Dedicated admin dashboard with financials
-    } else {
-        return view('admin-dashboard'); // Default to admin dashboard for other roles
     }
-})->name('dashboard')->middleware('auth');
+    
+    // Check for radiologist role (both systems)
+    if ($user->role === 'radiologist' || $user->hasRole('radiologist') || $user->hasRole('Radiologist') || RoleHelper::isRadiologist($user)) {
+        Log::info('Redirecting to radiologist dashboard');
+        return view('radiologist-dashboard'); // Dedicated radiologist dashboard
+    }
+    
+    // Check for lab tech role (both systems)
+    if ($user->role === 'lab_tech' || $user->hasRole('lab_tech') || $user->hasRole('Lab Technician') || RoleHelper::isLabTechnician($user)) {
+        Log::info('Redirecting to lab tech dashboard');
+        return view('lab-tech-dashboard'); // Dedicated lab tech dashboard  
+    }
+    
+    // Check for pharmacist role (both systems)
+    if ($user->role === 'pharmacist' || $user->hasRole('pharmacist') || $user->hasRole('Pharmacist') || RoleHelper::isPharmacist($user)) {
+        Log::info('Redirecting to pharmacist dashboard');
+        return view('pharmacist-dashboard'); // Dedicated pharmacist dashboard
+    }
+    
+    // Default to admin dashboard for other roles
+    Log::info('Redirecting to default admin dashboard');
+    return view('admin-dashboard');
+})->name('dashboard');
 
 // Patients page (role-based view)
 Route::get('/patients', function () {
@@ -123,14 +260,14 @@ Route::get('/help', function () {
     return view('help');
 })->name('help');
 
-// Radiologist dashboard - use unified dashboard
+// Radiologist dashboard - direct view
 Route::get('/radiologist', function () {
-    return redirect('/dashboard');
-})->middleware(['radiologist'])->name('radiologist.dashboard');
+    return view('radiologist-dashboard');
+})->name('radiologist.dashboard');
 
-// Lab Technician dashboard - use unified dashboard
+// Lab Technician dashboard - direct view
 Route::get('/lab-tech', function () {
-    return redirect('/dashboard');
+    return view('lab-tech-dashboard');
 })->name('lab-tech.dashboard');
 
 // DICOM upload page
@@ -205,13 +342,6 @@ Route::get('/test-financial', function () {
     return redirect()->route('dashboard');
 });
 
-// Quick login routes for demo
-Route::get('/quick-login', [QuickLoginController::class, 'showQuickLogin']);
-Route::get('/quick-login/admin', [QuickLoginController::class, 'loginAsAdmin']);
-Route::get('/quick-login/doctor', [QuickLoginController::class, 'loginAsDoctor']);
-Route::get('/quick-login/radiologist', [QuickLoginController::class, 'loginAsRadiologist']);
-Route::get('/quick-login/lab-tech', [QuickLoginController::class, 'loginAsLabTech']);
-Route::get('/quick-login/owner', [QuickLoginController::class, 'loginAsOwner']);
 
 // Configuration pages
 Route::get('/lab-tech-configuration', function () {
@@ -284,6 +414,15 @@ Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () 
             $rolesAvailable = true;
             return view('owner.users', compact('users', 'roles', 'rolesAvailable'));
         })->name('users.index');
+        
+        // API endpoint for owner dashboard staff data
+        Route::get('/api/staff-data', function () {
+            $users = App\Models\User::with('roles')
+                ->where('email', '!=', 'owner@medgemma.com') // Exclude owner
+                ->get();
+            
+            return response()->json($users);
+        })->name('api.staff.data');
         
         Route::post('/users', function (Illuminate\Http\Request $request) {
             $request->validate([
@@ -561,10 +700,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
     
     Route::post('/api/invoices', [InvoiceController::class, 'store']);
-    
-    // Invoice view route
-    Route::get('/invoices/{invoice}', [InvoiceController::class, 'view'])->name('invoices.view');
 });
+
+// ==================== PUBLIC INVOICE ROUTES ====================
+// Invoice view route - accessible without authentication for PDF generation
+Route::get('/invoices/{invoice}', [InvoiceController::class, 'view'])->name('invoices.view');
 
 // ==================== API ROUTES FOR NEW FUNCTIONALITY ====================
 
@@ -1169,58 +1309,334 @@ Route::get('/dashboard/owner', function () {
     $user = Auth::user();
     
     // Ensure only owners can access this endpoint
-    if (!$user || !$user->hasRole('owner')) {
+    if (!$user || !($user->role === 'owner' || $user->hasRole('owner'))) {
         return response()->json(['error' => 'Unauthorized'], 403);
     }
     
+    // Get financial data from database
+    $totalRevenue = App\Models\Invoice::where('status', 'paid')->sum('amount');
+    $totalProfit = App\Models\DoctorEarning::sum('admin_share');
+    $profitMargin = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
+    
+    // Get department-wise revenue (last 30 days)
+    $departmentRevenue = App\Models\Invoice::join('users', 'invoices.doctor_id', '=', 'users.id')
+        ->where('invoices.created_at', '>=', now()->subDays(30))
+        ->where('invoices.status', 'paid')
+        ->selectRaw('
+            CASE 
+                WHEN invoices.description LIKE "%CT%" OR invoices.description LIKE "%MRI%" OR invoices.description LIKE "%X-Ray%" OR invoices.description LIKE "%Ultrasound%" THEN "radiology"
+                WHEN invoices.description LIKE "%Laboratory%" OR invoices.description LIKE "%Test%" OR invoices.description LIKE "%CBC%" THEN "laboratory" 
+                WHEN invoices.description LIKE "%Prescription%" OR invoices.description LIKE "%Medication%" THEN "pharmacy"
+                ELSE "consultation"
+            END as department,
+            SUM(invoices.amount) as revenue,
+            COUNT(*) as procedures
+        ')
+        ->groupBy('department')
+        ->get()
+        ->keyBy('department');
+    
+    // Get monthly trends (last 6 months)
+    $monthlyTrends = App\Models\Invoice::where('created_at', '>=', now()->subMonths(6))
+        ->where('status', 'paid')
+        ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(amount) as revenue')
+        ->groupBy('month')
+        ->orderBy('month')
+        ->get();
+    
+    $monthlyProfit = App\Models\DoctorEarning::where('created_at', '>=', now()->subMonths(6))
+        ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(admin_share) as profit')
+        ->groupBy('month')
+        ->orderBy('month')
+        ->get();
+    
+    // Staff count
+    $staffCount = [
+        'total' => App\Models\User::count() - 1, // Exclude owner
+        'doctors' => App\Models\User::where(function($q) { 
+            $q->where('role', 'doctor')->orWhereHas('roles', function($r) { 
+                $r->where('name', 'Doctor'); 
+            }); 
+        })->count(),
+        'lab_techs' => App\Models\User::where(function($q) { 
+            $q->where('role', 'lab_tech')->orWhereHas('roles', function($r) { 
+                $r->where('name', 'Lab Technician'); 
+            }); 
+        })->count(),
+        'radiologists' => App\Models\User::where(function($q) { 
+            $q->where('role', 'radiologist')->orWhereHas('roles', function($r) { 
+                $r->where('name', 'Radiologist'); 
+            }); 
+        })->count(),
+        'pharmacists' => App\Models\User::where(function($q) { 
+            $q->where('role', 'pharmacist')->orWhereHas('roles', function($r) { 
+                $r->where('name', 'Pharmacist'); 
+            }); 
+        })->count(),
+        'admins' => App\Models\User::where(function($q) { 
+            $q->where('role', 'admin')->orWhereHas('roles', function($r) { 
+                $r->where('name', 'Admin'); 
+            }); 
+        })->count(),
+    ];
+    
     return response()->json([
-        'total_revenue' => 125400,
-        'total_profit' => 37620,
-        'profit_margin' => 30,
-        'growth_rate' => 8.5,
+        'total_revenue' => round($totalRevenue, 2),
+        'total_profit' => round($totalProfit, 2),
+        'profit_margin' => round($profitMargin, 2),
+        'growth_rate' => 8.5, // Can be calculated from trends
         'departments' => [
             'consultation' => [
-                'revenue' => 45200,
-                'owner_profit' => 13560,
-                'margin' => 30
+                'revenue' => round($departmentRevenue->get('consultation')->revenue ?? 0, 2),
+                'owner_profit' => round(($departmentRevenue->get('consultation')->revenue ?? 0) * 0.3, 2),
+                'margin' => 30,
+                'procedures' => $departmentRevenue->get('consultation')->procedures ?? 0
             ],
             'laboratory' => [
-                'revenue' => 32800,
-                'owner_profit' => 9840,
-                'margin' => 30
+                'revenue' => round($departmentRevenue->get('laboratory')->revenue ?? 0, 2),
+                'owner_profit' => round(($departmentRevenue->get('laboratory')->revenue ?? 0) * 0.3, 2),
+                'margin' => 30,
+                'procedures' => $departmentRevenue->get('laboratory')->procedures ?? 0
             ],
             'radiology' => [
-                'revenue' => 28500,
-                'owner_profit' => 8550,
-                'margin' => 30
+                'revenue' => round($departmentRevenue->get('radiology')->revenue ?? 0, 2),
+                'owner_profit' => round(($departmentRevenue->get('radiology')->revenue ?? 0) * 0.3, 2),
+                'margin' => 30,
+                'procedures' => $departmentRevenue->get('radiology')->procedures ?? 0
             ],
             'pharmacy' => [
-                'revenue' => 18900,
-                'owner_profit' => 5670,
-                'margin' => 30
+                'revenue' => round($departmentRevenue->get('pharmacy')->revenue ?? 0, 2),
+                'owner_profit' => round(($departmentRevenue->get('pharmacy')->revenue ?? 0) * 0.3, 2),
+                'margin' => 30,
+                'procedures' => $departmentRevenue->get('pharmacy')->procedures ?? 0
             ]
         ],
         'monthly_trends' => [
-            'revenue' => [85000, 92000, 78000, 105000, 118000, 125400],
-            'profit' => [25500, 27600, 23400, 31500, 35400, 37620]
+            'revenue' => $monthlyTrends->pluck('revenue')->toArray(),
+            'profit' => $monthlyProfit->pluck('profit')->toArray(),
+            'months' => $monthlyTrends->pluck('month')->toArray()
         ],
-        'staff_count' => [
-            'total' => 12,
-            'doctors' => 4,
-            'lab_techs' => 3,
-            'radiologists' => 2,
-            'pharmacists' => 2,
-            'admins' => 1
-        ],
+        'staff_count' => $staffCount,
         'performance_metrics' => [
             'patient_satisfaction' => 94,
             'staff_utilization' => 87,
             'equipment_uptime' => 96,
-            'roi' => 42
+            'roi' => round($totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0, 1)
+        ],
+        'recent_activity' => [
+            'new_patients_today' => App\Models\Patient::whereDate('created_at', today())->count(),
+            'invoices_today' => App\Models\Invoice::whereDate('created_at', today())->count(),
+            'revenue_today' => App\Models\Invoice::whereDate('created_at', today())->where('status', 'paid')->sum('amount')
         ]
     ]);
 })->name('dashboard.owner');
 
+    // Configuration API Routes for Imaging Tests
+    Route::prefix('configuration')->name('configuration.')->group(function () {
+        // Get all imaging tests
+        Route::get('/imaging-tests', function () {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    [
+                        'id' => 1,
+                        'code' => 'CXR',
+                        'name' => 'Chest X-Ray',
+                        'modality' => 'X-RAY',
+                        'body_part' => 'Chest',
+                        'estimated_duration' => 15,
+                        'is_active' => true,
+                        'description' => 'Standard chest radiography for pulmonary evaluation',
+                        'preparation_instructions' => ['Remove jewelry and metal objects', 'Wear hospital gown']
+                    ],
+                    [
+                        'id' => 2,
+                        'code' => 'CTHEAD',
+                        'name' => 'CT Head',
+                        'modality' => 'CT',
+                        'body_part' => 'Head',
+                        'estimated_duration' => 30,
+                        'is_active' => true,
+                        'description' => 'Non-contrast CT scan of the head',
+                        'preparation_instructions' => ['Remove jewelry and hairpins', 'Inform if claustrophobic']
+                    ],
+                    [
+                        'id' => 3,
+                        'code' => 'MRIBRAIN',
+                        'name' => 'MRI Brain',
+                        'modality' => 'MRI',
+                        'body_part' => 'Brain',
+                        'estimated_duration' => 45,
+                        'is_active' => true,
+                        'description' => 'Magnetic resonance imaging of the brain',
+                        'preparation_instructions' => ['Remove all metal objects', 'Complete MRI safety screening', 'Fast for 4 hours if contrast needed']
+                    ],
+                    [
+                        'id' => 4,
+                        'code' => 'USABD',
+                        'name' => 'Abdominal Ultrasound',
+                        'modality' => 'US',
+                        'body_part' => 'Abdomen',
+                        'estimated_duration' => 20,
+                        'is_active' => true,
+                        'description' => 'Ultrasound examination of abdominal organs',
+                        'preparation_instructions' => ['Fast for 8 hours before exam', 'Drink water 1 hour before and hold']
+                    ],
+                    [
+                        'id' => 5,
+                        'code' => 'MAMMO',
+                        'name' => 'Mammography',
+                        'modality' => 'MAMMO',
+                        'body_part' => 'Breast',
+                        'estimated_duration' => 25,
+                        'is_active' => true,
+                        'description' => 'Breast imaging for cancer screening',
+                        'preparation_instructions' => ['No deodorant or powder', 'Wear two-piece clothing', 'Schedule for week after period']
+                    ],
+                    [
+                        'id' => 6,
+                        'code' => 'CTCHEST',
+                        'name' => 'CT Chest',
+                        'modality' => 'CT',
+                        'body_part' => 'Chest',
+                        'estimated_duration' => 25,
+                        'is_active' => true,
+                        'description' => 'High-resolution CT scan of the chest',
+                        'preparation_instructions' => ['Remove jewelry and metal objects', 'Hold breath when instructed']
+                    ]
+                ]
+            ]);
+        });
+        
+        // Create new imaging test
+        Route::post('/imaging-tests', function (Illuminate\Http\Request $request) {
+            $data = $request->validate([
+                'code' => 'required|string|max:10',
+                'name' => 'required|string|max:255',
+                'modality' => 'required|string|max:50',
+                'body_part' => 'nullable|string|max:100',
+                'estimated_duration' => 'nullable|integer|min:1|max:999',
+                'description' => 'nullable|string|max:1000',
+                'preparation_instructions' => 'nullable|array',
+                'is_active' => 'boolean'
+            ]);
+            
+            // Simulate creating the test
+            $newTest = array_merge($data, [
+                'id' => rand(100, 999),
+                'created_at' => now()->toISOString(),
+                'updated_at' => now()->toISOString()
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Imaging test created successfully',
+                'data' => $newTest
+            ], 201);
+        });
+        
+        // Update imaging test
+        Route::put('/imaging-tests/{id}', function (Illuminate\Http\Request $request, $id) {
+            $data = $request->validate([
+                'code' => 'required|string|max:10',
+                'name' => 'required|string|max:255',
+                'modality' => 'required|string|max:50',
+                'body_part' => 'nullable|string|max:100',
+                'estimated_duration' => 'nullable|integer|min:1|max:999',
+                'description' => 'nullable|string|max:1000',
+                'preparation_instructions' => 'nullable|array',
+                'is_active' => 'boolean'
+            ]);
+            
+            // Simulate updating the test
+            $updatedTest = array_merge($data, [
+                'id' => (int) $id,
+                'updated_at' => now()->toISOString()
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Imaging test updated successfully',
+                'data' => $updatedTest
+            ]);
+        });
+        
+        // Delete imaging test
+        Route::delete('/imaging-tests/{id}', function ($id) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Imaging test deleted successfully'
+            ]);
+        });
+    });
+
 });
+
+// Dashboard Preview Routes
+Route::get('/dashboard-preview', function () {
+    return view('dashboard-preview');
+})->name('dashboard.preview');
+
+Route::get('/dashboard-file-preview/{dashboard}', function ($dashboard) {
+    $dashboardFile = $dashboard;
+    
+    // Add .blade.php extension if not present
+    if (!str_ends_with($dashboard, '.blade.php')) {
+        $dashboardFile = $dashboard;
+    }
+    
+    // Security check - only allow dashboard files
+    $allowedDashboards = [
+        'owner-dashboard',
+        'admin-dashboard', 
+        'doctor-dashboard',
+        'radiologist-dashboard',
+        'lab-tech-dashboard',
+        'pharmacist-dashboard',
+        'dashboard',
+        'dashboard-admin',
+        'doctor-enhanced-dashboard',
+        'doctor-financial-dashboard',
+        'doctor-dashboard-unified',
+        'lab-dashboard-unified',
+        'lab-tech-dashboard-clean',
+        'pharmacist-dashboard-unified',
+        'radiologist-dashboard-clean'
+    ];
+    
+    if (!in_array($dashboardFile, $allowedDashboards)) {
+        abort(404);
+    }
+    
+    // Create mock data for dashboard previews
+    $user = new stdClass();
+    $user->name = 'Preview User';
+    $user->email = 'preview@example.com';
+    $user->role = 'preview';
+    
+    $dashboardData = [
+        'totalRevenue' => 93252,
+        'totalPatients' => 1247,
+        'totalStudies' => 895,
+        'totalInvoices' => 623,
+        'revenueGrowth' => 12.5,
+        'patientGrowth' => 8.3,
+        'monthlyRevenue' => [75000, 82000, 89000, 93252],
+        'recentActivity' => [],
+        'staffCount' => [
+            'doctors' => 15,
+            'nurses' => 28,
+            'lab_techs' => 12,
+            'pharmacists' => 8,
+            'radiologists' => 6
+        ]
+    ];
+    
+    try {
+        return view($dashboardFile, compact('user', 'dashboardData'));
+    } catch (Exception $e) {
+        return view('errors.404')->with('message', 'Dashboard file not found or has errors: ' . $e->getMessage());
+    }
+})->name('dashboard.file.preview');
 
 // End of routes

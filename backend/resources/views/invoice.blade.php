@@ -14,7 +14,35 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 2rem;
-        text-align: center;
+    }
+    
+    .invoice-brand {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .invoice-logo {
+        height: 80px;
+        width: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .brand-info h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .brand-info p {
+        font-size: 1rem;
+        margin: 0;
+        opacity: 0.9;
+        font-weight: 400;
+        letter-spacing: 0.5px;
     }
     .invoice-actions {
         background: #f8f9fa;
@@ -49,34 +77,51 @@
     }
     .invoice-table {
         width: 100%;
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 0;
         margin: 2rem 0;
-        border-radius: 8px;
+        border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(102,126,234,0.15);
     }
     .invoice-table th {
-        background: #667eea;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 1rem;
+        padding: 1.2rem 1rem;
         text-align: left;
+        font-weight: 600;
+        font-size: 0.95rem;
+        letter-spacing: 0.5px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
     .invoice-table td {
-        padding: 1rem;
-        border-bottom: 1px solid #eee;
-        color: #333;
+        padding: 1.2rem 1rem;
+        border-bottom: 1px solid #e9ecef;
+        background: rgba(255,255,255,0.95);
+        color: #495057;
+    }
+    .invoice-table tr:last-child td {
+        border-bottom: none;
+    }
+    .invoice-table tr:nth-child(even) td {
+        background: rgba(248,249,250,0.8);
+    }
     }
     .total-section {
         text-align: right;
         margin-top: 2rem;
-        padding-top: 1rem;
-        border-top: 2px solid #667eea;
-        color: #333;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, rgba(102,126,234,0.05) 0%, rgba(118,75,162,0.05) 100%);
+        border-radius: 12px;
+        border: 1px solid rgba(102,126,234,0.2);
+        color: #495057;
     }
     .total-amount {
-        font-size: 1.5rem;
-        font-weight: bold;
+        font-size: 1.8rem;
+        font-weight: 700;
         color: #667eea;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        margin-top: 0.5rem;
     }
     .status-badge {
         display: inline-block;
@@ -129,10 +174,16 @@
     
     .email-form {
         display: none;
-        background: #f8f9fa;
+        background: rgba(255, 255, 255, 0.95);
+        color: #333;
         padding: 1rem;
         border-radius: 5px;
         margin-top: 1rem;
+        border: 1px solid #ddd;
+    }
+    .email-form h4 {
+        color: #333 !important;
+        margin-bottom: 1rem;
     }
     .form-group {
         margin-bottom: 1rem;
@@ -141,6 +192,7 @@
         display: block;
         margin-bottom: 0.5rem;
         font-weight: bold;
+        color: #333 !important;
     }
     .form-control {
         width: 100%;
@@ -148,6 +200,13 @@
         border: 1px solid #ddd;
         border-radius: 5px;
         font-size: 1rem;
+        background: #fff;
+        color: #333;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
     }
     
     @media (max-width: 768px) {
@@ -178,8 +237,13 @@
 @section('content')
 <div class="invoice-container">
     <div class="invoice-header">
-        <h1>🏥 Aviva Healthcare</h1>
-        <p>Professional Healthcare Services</p>
+        <div class="invoice-brand">
+            <img src="{{ asset('images/viva-healthcare-logo.png') }}" alt="Aviva Healthcare" class="invoice-logo">
+            <div class="brand-info">
+                <h1>Aviva Healthcare</h1>
+                <p>Advanced Medical Solutions & Digital Healthcare Platform</p>
+            </div>
+        </div>
     </div>
     
     <div class="invoice-actions no-print">
@@ -283,10 +347,20 @@
         </div>
         @endif
         
-        <div style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px; text-align: center; color: #6c757d;">
-            <p><strong>Aviva Healthcare</strong></p>
-            <p>Email: info@avivahealthcare.org | Billing: invoices@avivahealthcare.org</p>
-            <p>Thank you for choosing Aviva Healthcare for your medical needs.</p>
+        <div class="invoice-footer" style="margin-top: 2rem; padding: 2rem; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; text-align: center; color: #495057; border-top: 3px solid #667eea;">
+            <div class="footer-brand" style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1.5rem;">
+                <img src="{{ asset('images/viva-healthcare-logo.png') }}" 
+                     style="height: 50px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" 
+                     alt="Aviva Healthcare Logo">
+                <div style="text-align: left;">
+                    <h4 style="color: #667eea; margin: 0; font-size: 1.4rem; font-weight: 700;">Aviva Healthcare</h4>
+                    <p style="margin: 0; color: #6c757d; font-size: 0.9rem;">Professional Medical Services</p>
+                </div>
+            </div>
+            <div style="border-top: 1px solid #dee2e6; padding-top: 1rem;">
+                <p style="margin: 0.5rem 0; font-weight: 500;"><i class="fas fa-envelope" style="color: #667eea; margin-right: 8px;"></i>Email: info@vivahealthcare.com | Billing: billing@vivahealthcare.com</p>
+                <p style="margin: 0; font-style: italic; color: #6c757d;">Thank you for choosing Aviva Healthcare for your medical needs.</p>
+            </div>
         </div>
     </div>
 </div>
@@ -297,10 +371,21 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
+// Check if libraries are loaded
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof html2canvas === 'undefined') {
+        console.warn('html2canvas library not loaded, PDF generation may fail');
+    }
+    if (typeof window.jspdf === 'undefined') {
+        console.warn('jsPDF library not loaded, PDF generation may fail');
+    }
+});
+
 function toggleEmailForm() {
     const form = document.getElementById('emailForm');
     if (form.style.display === 'none' || form.style.display === '') {
         form.style.display = 'block';
+        document.getElementById('emailTo').focus();
     } else {
         form.style.display = 'none';
     }
@@ -311,6 +396,18 @@ async function sendEmail(event) {
     
     const emailTo = document.getElementById('emailTo').value;
     const emailMessage = document.getElementById('emailMessage').value;
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    if (!emailTo || !emailTo.includes('@')) {
+        alert('Please enter a valid email address.');
+        document.getElementById('emailTo').focus();
+        return;
+    }
+    
+    // Show loading state
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+    submitBtn.disabled = true;
     
     try {
         const response = await fetch('/api/invoices/{{ $invoice->id }}/email', {
@@ -328,58 +425,219 @@ async function sendEmail(event) {
         const result = await response.json();
         
         if (response.ok) {
-            alert('Invoice emailed successfully!');
+            alert('✅ Invoice emailed successfully to ' + emailTo + '!');
             toggleEmailForm();
+            // Clear the form
+            document.getElementById('emailMessage').value = '';
         } else {
-            alert('Error sending email: ' + (result.message || 'Unknown error'));
+            throw new Error(result.message || 'Server returned error ' + response.status);
         }
     } catch (error) {
-        alert('Error sending email: ' + error.message);
+        console.error('Email sending error:', error);
+        alert('❌ Error sending email: ' + error.message);
+    } finally {
+        // Restore button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
     }
 }
 
 async function downloadPDF() {
     try {
         // Show loading message
-        const originalContent = document.querySelector('.invoice-content').innerHTML;
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating PDF...';
+        btn.disabled = true;
         
-        // Create a clone of the invoice for PDF generation
-        const invoiceClone = document.querySelector('.invoice-container').cloneNode(true);
+        // Wait for loading message to show
+        await new Promise(resolve => setTimeout(resolve, 200));
         
-        // Remove actions and no-print elements from clone
-        const actionsToRemove = invoiceClone.querySelectorAll('.invoice-actions, .no-print');
-        actionsToRemove.forEach(el => el.remove());
-        
-        // Generate PDF using html2canvas and jsPDF
-        const canvas = await html2canvas(invoiceClone, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: true
-        });
-        
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        
-        const imgWidth = 210; // A4 width in mm
-        const pageHeight = 295; // A4 height in mm
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        let heightLeft = imgHeight;
-        
-        let position = 0;
-        
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-        
-        while (heightLeft >= 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+        // Check for required libraries
+        if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+            throw new Error('PDF generation libraries are not available');
         }
         
-        pdf.save('invoice-{{ $invoice->invoice_number }}.pdf');
+        // Create a clean copy of the invoice for PDF generation
+        const originalInvoice = document.querySelector('.invoice-container');
+        if (!originalInvoice) {
+            throw new Error('Invoice container not found');
+        }
+        
+        const invoiceClone = originalInvoice.cloneNode(true);
+        
+        // Remove non-printable elements from the clone
+        const elementsToRemove = invoiceClone.querySelectorAll('.invoice-actions, .no-print, .email-form, .btn, button');
+        elementsToRemove.forEach(el => el.remove());
+        
+        // Optimize clone for PDF generation
+        invoiceClone.style.position = 'absolute';
+        invoiceClone.style.left = '-9999px';
+        invoiceClone.style.top = '0';
+        invoiceClone.style.width = '800px';
+        invoiceClone.style.minHeight = '1000px';
+        invoiceClone.style.backgroundColor = '#ffffff';
+        invoiceClone.style.fontFamily = 'Arial, sans-serif';
+        
+        // Temporarily add clone to DOM for rendering
+        document.body.appendChild(invoiceClone);
+        
+        try {
+            // Generate canvas with optimized settings for PDF compatibility
+            const canvas = await html2canvas(invoiceClone, {
+                scale: 1.5, // Reduced scale for better compatibility
+                useCORS: true,
+                allowTaint: false,
+                backgroundColor: '#ffffff',
+                width: 800,
+                height: invoiceClone.scrollHeight,
+                logging: false,
+                imageTimeout: 15000,
+                removeContainer: false
+            });
+            
+            // Remove the temporary clone
+            document.body.removeChild(invoiceClone);
+            
+            // Validate canvas
+            if (!canvas || canvas.width === 0 || canvas.height === 0) {
+                throw new Error('Failed to generate valid canvas from invoice');
+            }
+            
+            // Create PDF with proper settings for Adobe compatibility
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                putOnlyUsedFonts: true,
+                floatPrecision: 16
+            });
+            
+            // Set PDF metadata for better compatibility
+            pdf.setProperties({
+                title: 'Invoice {{ $invoice->invoice_number ?? "" }}',
+                subject: 'Healthcare Invoice - Aviva Healthcare',
+                author: 'Aviva Healthcare Platform',
+                creator: 'Aviva Healthcare System',
+                producer: 'jsPDF'
+            });
+            
+            // Calculate dimensions for A4
+            const pageWidth = 210; // A4 width in mm
+            const pageHeight = 297; // A4 height in mm
+            const margin = 10; // 10mm margin
+            const contentWidth = pageWidth - (margin * 2);
+            const contentHeight = pageHeight - (margin * 2);
+            
+            // Calculate image dimensions maintaining aspect ratio
+            const imgAspectRatio = canvas.width / canvas.height;
+            let imgWidth = contentWidth;
+            let imgHeight = contentWidth / imgAspectRatio;
+            
+            // If image is too tall for one page, scale it down
+            if (imgHeight > contentHeight) {
+                imgHeight = contentHeight;
+                imgWidth = contentHeight * imgAspectRatio;
+            }
+            
+            // Convert canvas to high-quality image data
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            
+            // Add image to PDF centered on the page
+            const xOffset = (pageWidth - imgWidth) / 2;
+            const yOffset = margin;
+            
+            pdf.addImage(imgData, 'JPEG', xOffset, yOffset, imgWidth, imgHeight, undefined, 'FAST');
+            
+            // If content is too tall, create additional pages
+            if (imgHeight > contentHeight) {
+                let remainingHeight = canvas.height;
+                let currentY = 0;
+                let pageCount = 1;
+                
+                while (remainingHeight > 0 && pageCount < 10) { // Max 10 pages safety check
+                    const segmentHeight = Math.min(remainingHeight, canvas.height * (contentHeight / imgHeight));
+                    
+                    if (pageCount > 1) {
+                        pdf.addPage();
+                        const segmentCanvas = document.createElement('canvas');
+                        segmentCanvas.width = canvas.width;
+                        segmentCanvas.height = segmentHeight;
+                        const ctx = segmentCanvas.getContext('2d');
+                        
+                        ctx.drawImage(canvas, 0, currentY, canvas.width, segmentHeight, 0, 0, canvas.width, segmentHeight);
+                        
+                        const segmentImgData = segmentCanvas.toDataURL('image/jpeg', 0.95);
+                        pdf.addImage(segmentImgData, 'JPEG', xOffset, yOffset, imgWidth, imgHeight * (segmentHeight / canvas.height), undefined, 'FAST');
+                    }
+                    
+                    currentY += segmentHeight;
+                    remainingHeight -= segmentHeight;
+                    pageCount++;
+                }
+            }
+            
+            // Generate filename with timestamp for uniqueness
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            const filename = `aviva-invoice-{{ $invoice->invoice_number ?? "unknown" }}-${timestamp}.pdf`;
+            
+            // Save PDF with proper MIME type
+            const pdfBlob = pdf.output('blob');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(pdfBlob);
+            link.download = filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            
+            console.log('PDF generated successfully:', filename);
+            
+        } catch (canvasError) {
+            // Remove clone if it still exists
+            if (document.body.contains(invoiceClone)) {
+                document.body.removeChild(invoiceClone);
+            }
+            throw canvasError;
+        }
+        
+        // Restore button
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        // Show success message
+        setTimeout(() => {
+            alert('✅ PDF generated successfully! Check your downloads folder.');
+        }, 500);
+        
     } catch (error) {
-        alert('Error generating PDF: ' + error.message);
+        console.error('PDF generation error:', error);
+        
+        // Restore button on error
+        if (event && event.target) {
+            event.target.innerHTML = '📄 Download PDF';
+            event.target.disabled = false;
+        }
+        
+        // Show detailed error message with fallback options
+        const errorMessage = `❌ PDF Generation Failed
+        
+Error: ${error.message}
+
+🔧 Troubleshooting Options:
+1. Try using Chrome or Firefox browser
+2. Disable ad blockers temporarily
+3. Use browser's "Print to PDF" feature (Ctrl+P → Save as PDF)
+4. Contact support if the issue persists
+
+Would you like to try browser print instead?`;
+        
+        if (confirm(errorMessage)) {
+            window.print();
+        }
+        window.print();
     }
 }
 

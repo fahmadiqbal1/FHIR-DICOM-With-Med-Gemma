@@ -652,6 +652,57 @@
                 flex-wrap: wrap;
             }
         }
+        
+        /* Lab Tests Drag & Drop Styles */
+        .test-item {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 5px 0;
+            cursor: grab;
+            transition: all 0.3s ease;
+            user-select: none;
+            font-size: 14px;
+            position: relative;
+        }
+        
+        .test-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .test-item:active {
+            cursor: grabbing;
+        }
+        
+        .test-item.dragging {
+            opacity: 0.5;
+        }
+        
+        .test-item.selected {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: #4CAF50;
+        }
+        
+        #availableTests.drag-over,
+        #selectedTests.drag-over {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+        }
+        
+        .remove-test {
+            float: right;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 10px;
+            font-size: 16px;
+        }
+        
+        .remove-test:hover {
+            color: #ff5252;
+        }
     </style>
 </head>
 <body>
@@ -775,14 +826,38 @@
             </div>
             
             <form id="orderForm">
+                <!-- Lab Tests Selection with Drag & Drop -->
                 <div class="form-group">
-                    <label class="form-label">Order Type:</label>
-                    <input type="text" id="orderType" class="form-input" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Description:</label>
-                    <textarea id="orderDescription" class="form-textarea" placeholder="Enter order details..." required></textarea>
+                    <label class="form-label">Available Lab Tests:</label>
+                    <div style="display: flex; gap: 20px; margin-top: 10px;">
+                        <div id="availableTests" style="
+                            flex: 1;
+                            min-height: 150px;
+                            border: 2px dashed #ccc;
+                            border-radius: 8px;
+                            padding: 15px;
+                            background: rgba(255, 255, 255, 0.05);
+                            color: white;
+                        ">
+                            <h5 style="margin: 0 0 10px 0; color: #ffffff;">Available Tests</h5>
+                            <div id="loadingTests" style="text-align: center; padding: 20px; color: #888;">
+                                <i class="fas fa-spinner fa-spin"></i> Loading available tests...
+                            </div>
+                        </div>
+                        
+                        <div id="selectedTests" style="
+                            flex: 1;
+                            min-height: 150px;
+                            border: 2px dashed #4CAF50;
+                            border-radius: 8px;
+                            padding: 15px;
+                            background: rgba(76, 175, 80, 0.1);
+                            color: white;
+                        ">
+                            <h5 style="margin: 0 0 10px 0; color: #4CAF50;">Selected Tests</h5>
+                            <p style="color: #888; font-style: italic; margin: 0;">Drag tests here from the left panel</p>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -796,7 +871,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Notes:</label>
+                    <label class="form-label">Clinical Notes:</label>
                     <textarea id="orderNotes" class="form-textarea" placeholder="Additional instructions or clinical context..."></textarea>
                 </div>
                 
@@ -1107,6 +1182,8 @@
         }
 
         // Order modal functions
+        let selectedTests = [];
+        
         function showOrderModal(orderType) {
             const modal = document.getElementById('orderModal');
             const titleMap = {
@@ -1116,13 +1193,196 @@
             };
             
             document.getElementById('orderModalTitle').textContent = titleMap[orderType] || 'Place Order';
-            document.getElementById('orderType').value = orderType.charAt(0).toUpperCase() + orderType.slice(1);
             
-            // Clear form
+            // Clear form and selected tests
             document.getElementById('orderForm').reset();
-            document.getElementById('orderType').value = orderType.charAt(0).toUpperCase() + orderType.slice(1);
+            selectedTests = [];
+            updateSelectedTestsDisplay();
+            
+            // Initialize drag and drop if it's a lab order
+            if (orderType === 'lab') {
+                loadAvailableTests();
+            }
             
             modal.classList.add('active');
+        }
+        
+        // Load available tests from lab configuration
+        async function loadAvailableTests() {
+            try {
+                const response = await fetch('/api/lab-tests', {
+                    headers: { 'X-CSRF-TOKEN': csrf }
+                });
+                
+                if (response.ok) {
+                    const tests = await response.json();
+                    displayAvailableTests(tests.filter(test => test.is_active));
+                } else {
+                    // Fallback to hardcoded tests if API fails
+                    displayAvailableTests([
+                        {code: 'CBC', name: 'Complete Blood Count', category: 'hematology', price: 35.00, equipment: 'Mission HA-360'},
+                        {code: 'CMP', name: 'Comprehensive Metabolic Panel', category: 'chemistry', price: 45.00, equipment: 'CBS-40'},
+                        {code: 'LFT', name: 'Liver Function Tests', category: 'chemistry', price: 40.00, equipment: 'Contec BC300'},
+                        {code: 'LIPID', name: 'Lipid Panel', category: 'chemistry', price: 38.00, equipment: 'Contec BC300'},
+                        {code: 'TSH', name: 'Thyroid Stimulating Hormone', category: 'immunology', price: 35.00, equipment: 'Contec BC300'},
+                        {code: 'GLU', name: 'Glucose', category: 'chemistry', price: 10.00, equipment: 'CBS-40'},
+                        {code: 'HGB', name: 'Hemoglobin', category: 'hematology', price: 15.00, equipment: 'Mission HA-360'},
+                        {code: 'CREA', name: 'Creatinine', category: 'chemistry', price: 15.00, equipment: 'CBS-40'}
+                    ]);
+                }
+            } catch (error) {
+                console.error('Error loading available tests:', error);
+                displayAvailableTests([]);
+            }
+        }
+        
+        function displayAvailableTests(tests) {
+            const container = document.getElementById('availableTests');
+            const loadingElement = document.getElementById('loadingTests');
+            
+            if (loadingElement) {
+                loadingElement.remove();
+            }
+            
+            if (tests.length === 0) {
+                container.innerHTML = `
+                    <h5 style="margin: 0 0 10px 0; color: #ffffff;">Available Tests</h5>
+                    <p style="color: #888; font-style: italic;">No tests configured</p>
+                `;
+                return;
+            }
+            
+            // Group tests by category
+            const categories = {
+                hematology: {name: 'Hematology', icon: '🩸', tests: []},
+                chemistry: {name: 'Chemistry', icon: '🧪', tests: []},
+                immunology: {name: 'Immunology', icon: '🛡️', tests: []},
+                microbiology: {name: 'Microbiology', icon: '🦠', tests: []},
+                molecular: {name: 'Molecular', icon: '🧬', tests: []}
+            };
+            
+            tests.forEach(test => {
+                const category = test.category || 'chemistry';
+                if (categories[category]) {
+                    categories[category].tests.push(test);
+                }
+            });
+            
+            let testsHTML = '<h5 style="margin: 0 0 10px 0; color: #ffffff;">Available Tests</h5>';
+            
+            Object.entries(categories).forEach(([key, category]) => {
+                if (category.tests.length > 0) {
+                    testsHTML += `<div style="margin-bottom: 15px;">`;
+                    testsHTML += `<h6 style="color: #4CAF50; margin: 10px 0 5px 0; font-size: 12px;">${category.icon} ${category.name.toUpperCase()}</h6>`;
+                    
+                    category.tests.forEach(test => {
+                        testsHTML += `
+                            <div class="test-item" draggable="true" data-test="${test.code}" data-price="${test.price || 0}" data-equipment="${test.equipment || 'Manual'}">
+                                ${category.icon} ${test.name} 
+                                <span style="font-size: 11px; color: #888;">($${(test.price || 0).toFixed(2)})</span>
+                            </div>
+                        `;
+                    });
+                    testsHTML += `</div>`;
+                }
+            });
+            
+            container.innerHTML = testsHTML;
+            
+            // Initialize drag and drop after tests are loaded
+            initializeDragAndDrop();
+        }
+        
+        function initializeDragAndDrop() {
+            const availableTests = document.getElementById('availableTests');
+            const selectedTestsContainer = document.getElementById('selectedTests');
+            
+            // Add drag event listeners to available tests
+            const testItems = availableTests.querySelectorAll('.test-item');
+            testItems.forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+            });
+            
+            // Add drop event listeners to containers
+            [availableTests, selectedTestsContainer].forEach(container => {
+                container.addEventListener('dragover', handleDragOver);
+                container.addEventListener('drop', handleDrop);
+                container.addEventListener('dragenter', handleDragEnter);
+                container.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+        
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                test: e.target.dataset.test,
+                text: e.target.textContent
+            }));
+            e.target.classList.add('dragging');
+        }
+        
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+        
+        function handleDragEnter(e) {
+            e.preventDefault();
+            e.target.classList.add('drag-over');
+        }
+        
+        function handleDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
+            
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+            const targetContainer = e.target.id || e.target.closest('#availableTests, #selectedTests').id;
+            
+            if (targetContainer === 'selectedTests') {
+                // Add to selected tests if not already added
+                if (!selectedTests.some(test => test.test === data.test)) {
+                    selectedTests.push(data);
+                    updateSelectedTestsDisplay();
+                }
+            } else if (targetContainer === 'availableTests') {
+                // Remove from selected tests
+                selectedTests = selectedTests.filter(test => test.test !== data.test);
+                updateSelectedTestsDisplay();
+            }
+        }
+        
+        function updateSelectedTestsDisplay() {
+            const container = document.getElementById('selectedTests');
+            const header = container.querySelector('h5');
+            
+            if (selectedTests.length === 0) {
+                container.innerHTML = `
+                    <h5 style="margin: 0 0 10px 0; color: #4CAF50;">Selected Tests</h5>
+                    <p style="color: #888; font-style: italic; margin: 0;">Drag tests here from the left panel</p>
+                `;
+            } else {
+                container.innerHTML = `
+                    <h5 style="margin: 0 0 10px 0; color: #4CAF50;">Selected Tests (${selectedTests.length})</h5>
+                    ${selectedTests.map(test => `
+                        <div class="test-item selected" data-test="${test.test}">
+                            ${test.text}
+                            <span class="remove-test" onclick="removeSelectedTest('${test.test}')">&times;</span>
+                        </div>
+                    `).join('')}
+                `;
+            }
+        }
+        
+        function removeSelectedTest(testCode) {
+            selectedTests = selectedTests.filter(test => test.test !== testCode);
+            updateSelectedTestsDisplay();
         }
 
         function closeOrderModal() {
@@ -1138,9 +1398,16 @@
                 return;
             }
             
+            // Check if lab tests are selected for lab orders
+            if (selectedTests.length === 0) {
+                alert('Please select at least one lab test');
+                return;
+            }
+            
             const orderData = {
-                type: document.getElementById('orderType').value.toLowerCase(),
-                description: document.getElementById('orderDescription').value,
+                type: 'lab',
+                description: selectedTests.map(test => test.text.replace(/^[^\s]+\s/, '')).join(', '), // Remove emoji and format
+                tests: selectedTests.map(test => test.test), // Send test codes
                 priority: document.getElementById('orderPriority').value,
                 notes: document.getElementById('orderNotes').value
             };
@@ -1156,7 +1423,7 @@
                 });
                 
                 if (response.ok) {
-                    alert('Order placed successfully!');
+                    alert(`Order placed successfully!\nTests ordered: ${selectedTests.length}\nPriority: ${orderData.priority}`);
                     closeOrderModal();
                     loadOrders(selectedPatientId);
                 } else {

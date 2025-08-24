@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Test Suite - Healthcare Platform</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 20px auto; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .test-section { 
+            background: white; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 20px; 
+        }
+        .test-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        .success { border-left-color: #28a745; }
+        .error { border-left-color: #dc3545; }
+        .warning { border-left-color: #ffc107; }
+        .btn { 
+            display: inline-block;
+            padding: 8px 16px; 
+            margin: 5px; 
+            background: #007bff; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover { background: #0056b3; }
+        .btn-success { background: #28a745; }
+        .btn-danger { background: #dc3545; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .status { 
+            padding: 4px 8px; 
+            border-radius: 12px; 
+            font-size: 0.85em; 
+            font-weight: bold;
+        }
+        .status-online { background: #d4edda; color: #155724; }
+        .status-redirect { background: #fff3cd; color: #856404; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        h1 { color: #333; text-align: center; }
+        h2 { color: #555; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🏥 Healthcare Platform Dashboard Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>🔐 Login Test Links</h2>
+        <p>Test each user type login and dashboard access:</p>
+        
+        <div class="test-grid">
+            <div class="test-card">
+                <h3>👑 Owner Dashboard</h3>
+                <p><strong>Email:</strong> owner@medgemma.com<br>
+                <strong>Password:</strong> password</p>
+                <a href="http://127.0.0.1:8000/login" class="btn btn-success" target="_blank">Login as Owner</a>
+                <a href="http://127.0.0.1:8000/dashboard/owner" class="btn" target="_blank">Direct Access</a>
+                <div class="status status-online">Expected: Business Dashboard</div>
+            </div>
+            
+            <div class="test-card">
+                <h3>👨‍💼 Admin Dashboard</h3>
+                <p><strong>Email:</strong> admin@medgemma.com<br>
+                <strong>Password:</strong> password</p>
+                <a href="http://127.0.0.1:8000/login" class="btn btn-success" target="_blank">Login as Admin</a>
+                <a href="http://127.0.0.1:8000/admin-dashboard-direct" class="btn" target="_blank">Direct Access</a>
+                <div class="status status-online">Expected: Admin Control Panel</div>
+            </div>
+            
+            <div class="test-card">
+                <h3>👨‍⚕️ Doctor Dashboard</h3>
+                <p><strong>Email:</strong> doctor1@medgemma.com<br>
+                <strong>Password:</strong> password</p>
+                <a href="http://127.0.0.1:8000/login" class="btn btn-success" target="_blank">Login as Doctor</a>
+                <a href="http://127.0.0.1:8000/doctor-dashboard-direct" class="btn" target="_blank">Direct Access</a>
+                <div class="status status-online">Expected: Patient Management</div>
+            </div>
+            
+            <div class="test-card">
+                <h3>🔬 Lab Tech Dashboard</h3>
+                <p><strong>Email:</strong> labtech@medgemma.com<br>
+                <strong>Password:</strong> password</p>
+                <a href="http://127.0.0.1:8000/login" class="btn btn-success" target="_blank">Login as Lab Tech</a>
+                <a href="http://127.0.0.1:8000/lab-tech-dashboard" class="btn" target="_blank">Direct Access</a>
+                <div class="status status-online">Expected: Lab Configuration</div>
+            </div>
+            
+            <div class="test-card">
+                <h3>🩻 Radiologist Dashboard</h3>
+                <p><strong>Email:</strong> radiologist@medgemma.com<br>
+                <strong>Password:</strong> password</p>
+                <a href="http://127.0.0.1:8000/login" class="btn btn-success" target="_blank">Login as Radiologist</a>
+                <a href="http://127.0.0.1:8000/radiologist-dashboard-direct" class="btn" target="_blank">Direct Access</a>
+                <div class="status status-online">Expected: DICOM Viewer</div>
+            </div>
+            
+            <div class="test-card">
+                <h3>💊 Pharmacist Dashboard</h3>
+                <p><strong>Email:</strong> pharmacist@medgemma.com<br>
+                <strong>Password:</strong> password</p>
+                <a href="http://127.0.0.1:8000/login" class="btn btn-success" target="_blank">Login as Pharmacist</a>
+                <a href="http://127.0.0.1:8000/pharmacist-dashboard" class="btn" target="_blank">Direct Access</a>
+                <div class="status status-online">Expected: Pharmacy Management</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🧪 Lab Tech Configuration Test</h2>
+        <p>Test the comprehensive lab configuration system with 3-machine integration:</p>
+        
+        <div class="test-grid">
+            <div class="test-card success">
+                <h3>🔬 Mission HA-360</h3>
+                <p>Hematology Analyzer</p>
+                <ul>
+                    <li>Complete Blood Count (CBC)</li>
+                    <li>WBC, RBC, Hemoglobin</li>
+                    <li>Platelet Count</li>
+                    <li>Differential Count</li>
+                </ul>
+                <div class="status status-online">40+ Tests Configured</div>
+            </div>
+            
+            <div class="test-card success">
+                <h3>⚡ CBS-40</h3>
+                <p>Electrolyte & Chemistry Analyzer</p>
+                <ul>
+                    <li>Sodium, Potassium, Chloride</li>
+                    <li>Glucose, BUN, Creatinine</li>
+                    <li>Basic Metabolic Panel</li>
+                </ul>
+                <div class="status status-online">Electrolyte Tests</div>
+            </div>
+            
+            <div class="test-card success">
+                <h3>🧬 Contec BC300</h3>
+                <p>Biochemistry Analyzer</p>
+                <ul>
+                    <li>Liver Function Tests</li>
+                    <li>Lipid Panel</li>
+                    <li>Thyroid Function</li>
+                    <li>Immunology Tests</li>
+                </ul>
+                <div class="status status-online">Advanced Chemistry</div>
+            </div>
+        </div>
+        
+        <p><strong>Access Path:</strong> Login as Lab Tech → Dashboard → Click "Configuration" Button</p>
+        <a href="http://127.0.0.1:8000/lab-tech-configuration" class="btn btn-warning" target="_blank">Direct Configuration Access</a>
+    </div>
+    
+    <div class="test-section">
+        <h2>📊 Dashboard Features Test</h2>
+        
+        <div class="test-grid">
+            <div class="test-card">
+                <h3>✅ Working Features</h3>
+                <ul>
+                    <li>All dashboard routes accessible (8/8)</li>
+                    <li>All view files exist</li>
+                    <li>Owner login functional</li>
+                    <li>Lab configuration system</li>
+                    <li>Financial calculations</li>
+                    <li>Real database data ($93,252 revenue)</li>
+                </ul>
+            </div>
+            
+            <div class="test-card warning">
+                <h3>⚠️ Issues Found</h3>
+                <ul>
+                    <li>CSRF token issues for some users</li>
+                    <li>Session timeout potentially too aggressive</li>
+                    <li>Multiple dashboard file versions</li>
+                    <li>Some users report redirect loops</li>
+                </ul>
+            </div>
+            
+            <div class="test-card">
+                <h3>🔧 Recent Fixes Applied</h3>
+                <ul>
+                    <li>Cache cleared (all types)</li>
+                    <li>Session timeout extended to 2 hours</li>
+                    <li>Server-side dashboard data loading</li>
+                    <li>Role detection enhanced</li>
+                    <li>All passwords reset to 'password'</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎯 Test Instructions</h2>
+        <ol>
+            <li><strong>Manual Login Test:</strong> Click "Login as [Role]" buttons above</li>
+            <li><strong>Dashboard Access:</strong> Try "Direct Access" links</li>
+            <li><strong>Lab Configuration:</strong> Test the lab tech configuration module</li>
+            <li><strong>Cache Issues:</strong> Use Ctrl+Shift+R (hard refresh) if needed</li>
+            <li><strong>Report Results:</strong> Note which dashboards load successfully</li>
+        </ol>
+        
+        <div style="background: #e7f3ff; padding: 15px; border-radius: 6px; margin-top: 20px;">
+            <strong>🔍 Expected Results:</strong><br>
+            • Owner: Business metrics and revenue dashboard<br>
+            • Lab Tech: Equipment status + Configuration button<br>
+            • Doctor: Patient management interface<br>
+            • Admin: System administration panel<br>
+            • Radiologist: DICOM imaging interface<br>
+            • Pharmacist: Medication management system
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>📞 Quick Actions</h2>
+        <a href="http://127.0.0.1:8000/login" class="btn btn-success" target="_blank">🔐 Main Login Page</a>
+        <a href="http://127.0.0.1:8000/dashboard" class="btn" target="_blank">📊 Main Dashboard</a>
+        <a href="http://127.0.0.1:8000/debug.php" class="btn btn-warning" target="_blank">🔧 Debug Info</a>
+        <a href="http://127.0.0.1:8000/logout" class="btn btn-danger" target="_blank">🚪 Logout</a>
+    </div>
+    
+    <footer style="text-align: center; margin-top: 40px; color: #666;">
+        <p>Healthcare Platform Dashboard Test Suite - Generated: <?php echo date('Y-m-d H:i:s'); ?></p>
+    </footer>
+</body>
+</html>

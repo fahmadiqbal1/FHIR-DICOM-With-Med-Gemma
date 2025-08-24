@@ -16,48 +16,85 @@ class InvoiceController extends Controller
 {
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'patient_id' => 'required|exists:patients,id',
-            'doctor_id' => 'required|exists:users,id',
-            'service_type' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0',
-            'description' => 'nullable|string|max:1000'
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'patient_id' => 'required|exists:patients,id',
+                'doctor_id' => 'required|exists:users,id',
+                'service_type' => 'required|string|max:255',
+                'amount' => 'required|numeric|min:0',
+                'description' => 'nullable|string|max:1000',
+                'due_date' => 'nullable|date',
+                'status' => 'nullable|string|in:pending,paid,overdue,cancelled'
+            ]);
 
-        if ($validator->fails()) {
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Validation failed: ' . $validator->errors()->first(),
+                    'errors' => $validator->errors(),
+                    'request_data' => $request->all()
+                ], 422);
+            }
+
+            // Generate invoice number if not provided
+            $invoiceNumber = 'INV-' . date('Y') . '-' . str_pad((Invoice::count() + 1), 4, '0', STR_PAD_LEFT);
+
+            $invoice = Invoice::create([
+                'patient_id' => $request->patient_id,
+                'doctor_id' => $request->doctor_id,
+                'service_type' => $request->service_type,
+                'amount' => $request->amount,
+                'description' => $request->description,
+                'due_date' => $request->due_date ?? now()->addDays(30),
+                'status' => $request->status ?? 'pending',
+                'invoice_number' => $invoiceNumber,
+                'email_sent_to' => null // Don't auto-assign email
+            ]);
+
+            // Load relationships
+            $invoice->load(['patient', 'doctor']);
+
             return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => 'Invoice created successfully',
+                'invoice' => $invoice,
+                'view_url' => route('invoices.view', $invoice->id)
+            ], 201);
+            
+        } catch (\Exception $e) {
+            Log::error('Invoice creation failed: ' . $e->getMessage(), [
+                'request_data' => $request->all(),
+                'error' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Failed to create invoice: ' . $e->getMessage(),
+                'error_details' => $e->getMessage()
+            ], 500);
         }
-
-        $invoice = Invoice::create([
-            'patient_id' => $request->patient_id,
-            'doctor_id' => $request->doctor_id,
-            'service_type' => $request->service_type,
-            'amount' => $request->amount,
-            'description' => $request->description,
-            'status' => 'pending',
-            'email_sent_to' => null // Don't auto-assign email
-        ]);
-
-        // Load relationships
-        $invoice->load(['patient', 'doctor']);
-
-        // Don't send automatic email - let user preview first
-
-        return response()->json([
-            'message' => 'Invoice created successfully',
-            'invoice' => $invoice,
-            'view_url' => route('admin.invoices.view', $invoice->id)
-        ], 201);
     }
 
     public function index()
     {
-        return Invoice::with(['patient', 'doctor'])
+        $invoices = Invoice::with(['patient', 'doctor'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($invoice) {
+                return [
+                    'id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'patient_id' => $invoice->patient_id,
+                    'doctor_id' => $invoice->doctor_id,
+                    'patient_name' => $invoice->patient ? ($invoice->patient->name ?? ($invoice->patient->first_name . ' ' . $invoice->patient->last_name)) : 'Unknown Patient',
+                    'doctor_name' => $invoice->doctor ? $invoice->doctor->name : 'Unknown Doctor',
+                    'service_type' => $invoice->service_type,
+                    'amount' => $invoice->amount,
+                    'status' => $invoice->status,
+                    'due_date' => $invoice->due_date,
+                    'created_at' => $invoice->created_at,
+                    'description' => $invoice->description
+                ];
+            });
+            
+        return response()->json($invoices);
     }
 
     public function show(Invoice $invoice)

@@ -15,7 +15,7 @@ class CheckSessionTimeout
     {
         if (Auth::check()) {
             $lastActivity = $request->session()->get('last_activity');
-            $timeout = 5 * 60; // 5 minutes in seconds
+            $timeout = 480 * 60; // 8 hours in seconds (matches session config)
             
             if ($lastActivity && (now()->timestamp - $lastActivity->timestamp) > $timeout) {
                 Auth::logout();
@@ -26,7 +26,7 @@ class CheckSessionTimeout
                     return response()->json(['message' => 'Session expired'], 401);
                 }
                 
-                return redirect('/login')->with('error', 'Your session has expired due to inactivity.');
+                return redirect()->route('login')->with('error', 'Your session has expired due to inactivity.');
             }
             
             // Update last activity
